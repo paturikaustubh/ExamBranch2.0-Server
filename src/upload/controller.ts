@@ -23,6 +23,7 @@ export function uploadStudentInfo(req: Request, res: Response) {
     const tableColumns: { [key: string]: boolean } = { 'rollNo': false, 'subCode': false, 'subName': false, 'grade': false, 'acYear': false, 'sem': false, 'exYear': false, 'exMonth': false }
 
     fs.readFile(loc, 'utf8', (err, data) => {
+        // Return if file not exist (or can't read)
         if (err) {
             logger.log('error', 'Error reading CSV file:', err);
             res.json({ done: false, error: "Error reading CSV file can't read file"+loc })
@@ -32,7 +33,7 @@ export function uploadStudentInfo(req: Request, res: Response) {
         // Split the CSV data into rows
         const rows = data.trim().split('\n').map(row => row.split(','));
 
-        // Remove header row if it exists
+        // Seperate headers and values
         let [header, ...values] = rows;
         let tmpColumns: string[] = [], colIndexs: number[] = []
         for (let i = 0; i < header.length; i++) {
@@ -48,14 +49,17 @@ export function uploadStudentInfo(req: Request, res: Response) {
             }
         }
 
+        // return if required columns not present
         if (tmpColumns.length !== Object.keys(tableColumns).length) {
             logger.log('error', `Restoring studentinfo failed with error csv file dose not have required values '${Object.keys(tableColumns)}' but got '${tmpColumns}'`);
             res.json({done:false, error:"csv file dose not have required values"});
             return;
         }
 
+        // Gather required columns
         values = values.map((row) => getElementsFromIndexs(row, colIndexs));
 
+        // Insert into database
         dbQuery(`insert ignore into studentinfo (${tmpColumns.join(', ')}) values ?`, [values])
             .then(function(value) {
                 logger.log('info', `Restoring studentinfo done! \nWith result:`, value);
