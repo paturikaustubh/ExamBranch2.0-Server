@@ -11,4 +11,15 @@ connection.connect((err, result) => {
     logger.log("info", "Connected to database");
 });
 
-export default connection;
+function dbQuery(query: string, parms?:any[]) {
+  return new Promise((resolve, reject) => {
+    connection.query(query, parms, (err, result) => {
+      
+      err ?
+        reject(err) :
+        resolve(result);
+    });
+  });
+}
+
+export default dbQuery;
