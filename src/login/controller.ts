@@ -2,7 +2,6 @@ import { Response, Request } from "express";
 import dbQuery from "../services/db";
 import * as logger from "../services/logger";
 import md5 from "md5";
-import { error } from "console";
 
 export function isUserValid(req: Request, res: Response) {
   const userName = req.body.userName;

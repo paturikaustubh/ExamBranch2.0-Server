@@ -1,7 +1,7 @@
 import { ConnectionConfig } from "mysql";
 import 'dotenv/config';
 
-export const port: number = 6969;
+export const port: number = parseInt(process.env.PORT??"6969");
 
 export const dbConfig: ConnectionConfig = {
     user: process.env.DB_USER,
