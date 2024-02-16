@@ -11,7 +11,7 @@ export function isUserValid(req: Request, res: Response) {
   dbQuery(`select userName, password from users where binary userName="${userName}"`).then(
     
     function(result: any) {
-      let response: LoginResponse;
+      // let response: LoginResponse;
       if (result.length !== 1) {
         res.json({
           goahead: false,
