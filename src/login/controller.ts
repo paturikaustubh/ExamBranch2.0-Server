@@ -1,8 +1,27 @@
-import { Response, Request } from "express";
+import { Response, Request, NextFunction } from "express";
 import dbQuery from "../services/db";
 import * as logger from "../services/logger";
+import { secret } from "../../config-local";
 import md5 from "md5";
 
+function generateToken(userName:string) {
+  return userName+"@"+ md5(userName + secret);
+}
+
+export function verifyToken({cookies}: Request, res: Response, next: NextFunction) {
+  if(cookies) {
+    const cookieValue = cookies.Token as string;
+    if (cookieValue) {
+      const [userName, _Token] = cookieValue.split("@")
+      if(generateToken(userName) === cookieValue) {
+        next();
+        return;
+      }
+    }
+    
+  }
+  res.status(401).send('Unauthorized'); // Respond with Unauthorized status
+}
 export function isUserValid(req: Request, res: Response) {
   const userName = req.body.userName;
   const password = req.body.password;
@@ -27,6 +46,7 @@ export function isUserValid(req: Request, res: Response) {
       }
 
       logger.log("info", `${userName} has logged in`);
+      res.cookie("Token", generateToken(userName), {httpOnly:true})
       res.json({ goahead: true, userName: userName });
     })
     .catch(

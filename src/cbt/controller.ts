@@ -2,11 +2,10 @@ import { Request, Response } from "express";
 
 import dbQuery from "../services/db";
 import * as logger from "../services/logger";
+import { isAnyUndefined, responses } from "../services/common";
 import { CBTSubjectsRow, PrintCBTRow } from "../interfaces/cbt"
+import dayjs from "dayjs";
 
-function isAnyUndefined(...variables: any[]): boolean {
-    return variables.some(variable => variable === undefined);
-}
 
 export async function searchCBT(req: Request, res: Response) {
     
@@ -27,11 +26,11 @@ export async function searchCBT(req: Request, res: Response) {
     const subNames: string[] = [];
     const mapper: { [key: string]: string } = {};
     try {
-        let rowsInPrintTable = await dbQuery(`select * from printcbt where rollNo='${rollNo}' and acYear= ${acYear} and sem = ${sem}`) as PrintCBTRow[];
+        let rowsInPrintTable = await dbQuery(`SELECT * FROM printcbt WHERE rollNo='${rollNo}' and acYear= ${acYear} and sem = ${sem}`) as PrintCBTRow[];
         let printTableExist: boolean = (rowsInPrintTable.length > 0);
 
-        let query = printTableExist ? `select subCode, subName from printcbt where rollNo="${rollNo}"`
-            : `select t.subCode,t.subName from cbtsubjects t Left join paidcbt p on t.subCode=p.subCode and p.rollNo="${rollNo}" where t.acYear=${acYear} and t.sem=${sem} and p.subCode is null and t.regYear=${reg} and t.branch="${branch}"`
+        let query = printTableExist ? `SELECT subCode, subName FROM printcbt WHERE rollNo="${rollNo}"`
+            : `SELECT t.subCode,t.subName FROM cbtsubjects t Left join paidcbt p on t.subCode=p.subCode and p.rollNo="${rollNo}" WHERE t.acYear=${acYear} and t.sem=${sem} and p.subCode is null and t.regYear=${reg} and t.branch="${branch}"`
         
         let cbtSubjectsTable = await dbQuery(query) as CBTSubjectsRow[];
 
@@ -43,7 +42,7 @@ export async function searchCBT(req: Request, res: Response) {
         res.send({ subCodes, subNames, mapper, printTableExist });
     } catch (err) {
         logger.log('error', err);
-        res.status(500).json({ error: "Error occured while db request check Server log for more info" });
+        res.status(500).json(responses.ErrorWhileDBRequest);
     }
 }
 
@@ -57,9 +56,7 @@ async function processCBT(req: Request, res: Response, tableName: string) {
     const userName:string = req.body.userName;
     
     if(isAnyUndefined(acYear, sem, subCodes, subNames, branch, rollNo, userName)) {
-        res.status(400).json({
-            error: "Not all parameters given"
-        });
+        res.status(400).json(responses.NotAllParamsGiven);
         return;
     }
 
@@ -67,18 +64,17 @@ async function processCBT(req: Request, res: Response, tableName: string) {
         await Promise.all(
             subCodes.map(
                 async (subCode, index) => {
-                    await dbQuery(`insert ignore into ${tableName}(rollNo, subCode, acYear, sem, subName, regDate, branch, user)values("${rollNo}","${subCode}","${acYear}","${sem}","${subNames[index]}", curdate(),"${branch}", "${userName}")`);
-                    if (tableName === 'paidcbt') {
-                        await dbQuery(`delete from printcbt where rollNo = "${rollNo}" and subCode="${subCode}"`);
-                    }
+                    await dbQuery(`INSERT IGNORE INTO ${tableName}(rollNo, subCode, acYear, sem, subName, regDate, branch, user) values ("${rollNo}","${subCode}","${acYear}","${sem}","${subNames[index]}", "${dayjs().format('DD-MMM-YY')}","${branch}", "${userName}")`);
                 }
             )
         )
+        if(tableName === 'paidcbt')
+        await dbQuery(`DELETE FROM printcbt WHERE rollNo = "${rollNo}"`);
         logger.log('info', `${userName} add rollNo: ${rollNo} to ${tableName} `);
         res.json({ done: true })
     } catch (err) {
         logger.log('error', err);
-        res.status(500).json({ error: "Error occurred while processing the request. Check server logs for more information." });
+        res.status(500).json(responses.ErrorWhileDBRequestWithDone);
     }
 }
 
@@ -95,12 +91,12 @@ export async function deleteFromCBT(req: Request, res: Response) {
     const sem = parseInt(req.body.sem || 0);
     try {
         if(year === 0 && sem === 0) {
-            await dbQuery("truncate paidcbt");
+            await dbQuery("TRUNCATE paidcbt");
             // await dbQuery("truncate cbtsubjects");
             res.send({ deleted: true });
             return;
         } 
-        let query = "delete from paidcbt where ";
+        let query = "DELETE FROM paidcbt where ";
         if (year !== 0) {
             query += `acYear = ${year}`;
         }
