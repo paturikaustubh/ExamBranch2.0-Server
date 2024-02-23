@@ -1,8 +1,8 @@
 import { Router } from "express";
-import revalRouter from "./routes";
+import manageRouter from "./routes";
 
 const router = Router();
 
-router.use("/reval", revalRouter)
+router.use("/manage", manageRouter)
 
 export default router;
