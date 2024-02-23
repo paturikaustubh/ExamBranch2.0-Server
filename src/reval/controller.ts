@@ -3,15 +3,20 @@ import * as logger from "../services/logger";
 import dbQuery from "../services/db";
 import { Details } from "../interfaces/reval";
 import dayjs from "dayjs";
+import { isAnyUndefined, responses } from "../services/common";
+
 
 // Revaluation Search
 
 export async function revalSearch(req: Request, res: Response) {
-    const rollNum = req.params.rollNum;
+    const rollNum: string = req.params.rollNum;
     const examMonth = req.query.examMonth;
     const examYear = req.query.examYear;
     let details: Details = {};
-
+    if (isAnyUndefined(rollNum, examMonth, examYear)) {
+        res.status(400).json({ error: responses.NotAllParamsGiven });
+        return;
+    }
     let subjDetails: { subjCodes: string[]; subjNames: string[] }[] = [];
     try {
         const result: any = await dbQuery(`SELECT subName FROM printReval WHERE rollNo = '${rollNum}';`);
@@ -40,7 +45,7 @@ export async function revalSearch(req: Request, res: Response) {
         res.json(details);
     } catch (err) {
         logger.log("error", err);
-        res.json({ error: err });
+        res.json({ error: responses.ErrorWhileDBRequest });
     }
 }
 
@@ -48,10 +53,13 @@ export async function revalSearch(req: Request, res: Response) {
 // Common function for Paid and Register 
 
 async function revalProcess(req: Request, reg?: string) {
-    const rollNum = req.params.rollNum;
-    const userName = req.body.userName;
+    const rollNum: string = req.params.rollNum;
+    const userName: string = req.body.userName;
     const details = [req.body.A, req.body.B, req.body.C, req.body.D, req.body.E, req.body.F, req.body.G, req.body.H];
     let year: number = 1, sem: number = 1, semCode: string = "A";
+    if (isAnyUndefined(rollNum, userName, ...details)) {
+        throw responses.NotAllParamsGiven;
+    }
     const date = dayjs().format("DD-MMM-YY");
     for (const subjects of details) {
         for (let i = 0; i < subjects.subjCodes.length; i++) {
@@ -61,7 +69,7 @@ async function revalProcess(req: Request, reg?: string) {
                     await dbQuery(`INSERT IGNORE INTO paidReEvaluation (rollNo, subCode, subName, acYear, sem, user, stat, regDate) VALUES ('${rollNum}', '${subjCode}', '${subjName}', '${year}', '${sem}', '${userName}', '${(reg === semCode) ? 'R' : ''}', '${date}')`); 
             } catch (err) {
                 logger.log("error", err);
-                throw err;
+                throw responses.ErrorWhileDBRequestWithDone;
             }
         }
         sem = (sem === 1) ? 2 : 1;
@@ -88,12 +96,15 @@ export async function printReval(req: Request, res: Response) {
 export async function registerReval(req: Request, res: Response) {
     const rollNum = req.params.rollNum;
     const regular = req.body.regular;
+    if (isAnyUndefined(rollNum, regular)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
     try {
         await revalProcess(req, regular);
         await dbQuery(`DELETE FROM printReval WHERE rollNo = '${rollNum}'`);
     } catch (err) {
         logger.log("error", err);
-        return res.json({ error: err });
+        return res.json({ error: responses.ErrorWhileDBRequestWithDone });
     }
     return res.json({ done: true });
 }

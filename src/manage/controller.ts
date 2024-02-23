@@ -2,6 +2,7 @@ import { Response, Request } from "express";
 import * as logger from "../services/logger";
 import dbQuery from "../services/db";
 import dayjs from "dayjs";
+import { isAnyUndefined, responses } from "../services/common";
 
 type Acyear = 0 | 1 | 2 | 3 | 4;
 type Sem = 0 | 1 | 2;
@@ -15,6 +16,10 @@ export async function getStdDetails(req: Request, res: Response) {
     const year = parseInt(req.query.year as string) as Acyear;
     const sem = parseInt(req.query.sem as string) as Sem;
     const tableName: string = req.query.tableName as string;
+    if (isAnyUndefined(rollNum, year, sem, tableName)) {
+        res.status(400).json({ error: responses.NotAllParamsGiven });
+        return;
+    }
     let query: string;
 
     if (year === 0 && sem === 0)
@@ -36,7 +41,7 @@ export async function getStdDetails(req: Request, res: Response) {
         res.json({ stdData });
     } catch (err) {
         logger.log("error", err);
-        res.json({ error: err });
+        res.json({ error: responses.ErrorWhileDBRequest });
     }
 }
 
@@ -49,6 +54,9 @@ export async function editStdDetails(req: Request, res: Response) {
     const tableName: string = req.body.tableName;
     const subjCode: string = req.body.subjCode;
     const newSubjCode: string = req.body.newSubjCode;
+    if (isAnyUndefined(rollNum, year, sem, tableName, subjCode, newSubjCode)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
     try {
         let subjName: any = await dbQuery(`SELECT subName FROM codeNames WHERE subCode = '${newSubjCode}'`);
         if (subjName.length === 0)
@@ -61,7 +69,7 @@ export async function editStdDetails(req: Request, res: Response) {
         return res.json({ updated: true });
     } catch(err) {
         logger.log("error", err);
-        return res.json({ error: err });
+        return res.json({ error: responses.ErrorWhileDBRequestWithUpdated });
     }
 }
 
@@ -73,6 +81,9 @@ export async function addStdDetails(req: Request, res: Response) {
     const sem: number = parseInt(req.body.sem) as Sem;
     const tableName: string = req.body.tableName;
     const subjCode: string = req.body.subjCode;
+    if (isAnyUndefined(rollNum, year, sem, tableName, subjCode)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
     const date = dayjs().format("DD-MMM-YY"); 
     try {
         let subjName: any = await dbQuery(`SELECT subName FROM codeNames WHERE subCode = '${subjCode}'`);
@@ -82,12 +93,11 @@ export async function addStdDetails(req: Request, res: Response) {
 
         const query: string = (tableName === "studentInfo") ? `INSERT IGNORE INTO studentInfo (rollNo, subCode, subName, grade, acYear, sem, exYear, exMonth) VALUES ("${rollNum}", "${subjCode}", "${subjName}", "${req.body.grade}", ${year}, ${sem}, "${req.body.examYear}", "${req.body.examMonth}")` :
             `INSERT IGNORE INTO ${tableName} (rollNo, subCode, subName, acYear, sem, regDate) VALUES ('${rollNum}', '${subjCode}', '${subjName}', ${year}, ${sem}, '${date}')`;
-        
         await dbQuery(query);
         return res.json({ done: true });
     } catch (err) {
         logger.log("error", err);
-        return res.json({ done: false });
+        return res.json({ done: responses.ErrorWhileDBRequestWithDone });
         
     }
 }
@@ -98,13 +108,15 @@ export async function deleteStdDetails(req: Request, res: Response) {
     let rollNum: string = req.params.rollNum;
     let subjCode: string = req.body.subjCode;
     let tableName: string = req.body.tableName;
+    if (isAnyUndefined(rollNum, tableName)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
     try {
         await dbQuery(`DELETE FROM ${tableName} WHERE rollNo = '${rollNum}' ${(subjCode === undefined)? '': `AND subCode = '${subjCode}'`}`);
         res.json({ deleted: true });
     } catch (err) {
         logger.log("error", err);
-        return res.json({ error: err });
+        return res.json({ error: responses.ErrorWhileDBRequestWithDeleted });
     }
 }
-
 

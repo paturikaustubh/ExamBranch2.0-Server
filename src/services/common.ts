@@ -14,6 +14,14 @@ export const responses = {
         done: false,
         error: "Error occured while db request. Check server logs for more information"
     },
+    ErrorWhileDBRequestWithDeleted:{
+        deleted: false,
+        error: "Error occured while db request. Check server logs for more information"
+    },
+    ErrorWhileDBRequestWithUpdated:{
+        updated: false,
+        error: "Error occured while db request. Check server logs for more information"
+    },
     ErrorWhileReadingOrProcessing:{ 
         done: false, 
         error: "Error reading or processing file from the file check Server log for more info" 
