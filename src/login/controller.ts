@@ -4,36 +4,41 @@ import * as logger from "../services/logger";
 import { secret } from "../../config-local";
 import md5 from "md5";
 
-function generateToken(userName:string) {
-  return userName+"@"+ md5(userName + secret);
+function generateToken(username: string) {
+  return username + "@" + md5(username + secret);
 }
 
-export function verifyToken({cookies}: Request, res: Response, next: NextFunction) {
-  if(cookies) {
+export function verifyToken(
+  { cookies }: Request,
+  res: Response,
+  next: NextFunction
+) {
+  if (cookies) {
     const cookieValue = cookies.Token as string;
     if (cookieValue) {
-      const [userName, _Token] = cookieValue.split("@")
-      if(generateToken(userName) === cookieValue) {
+      const [username, _Token] = cookieValue.split("@");
+      if (generateToken(username) === cookieValue) {
         next();
         return;
       }
     }
-    
   }
-  res.status(401).send('Unauthorized'); // Respond with Unauthorized status
+  res.status(401).send("Unauthorized"); // Respond with Unauthorized status
 }
 export function isUserValid(req: Request, res: Response) {
-  const userName = req.body.userName;
-  const password = req.body.password;
+  const username = req.query.username as string;
+  const password = req.query.password as string;
+  const ip = req.ip as string;
 
-  dbQuery(`select userName, password from users where binary userName="${userName}"`).then(
-    
-    function(result: any) {
+  dbQuery(
+    `SELECT username, password FROM users WHERE BINARY username="${username}";`
+  )
+    .then(function (result: any) {
       // let response: LoginResponse;
       if (result.length !== 1) {
         res.json({
           goahead: false,
-          error: `No user with username ${userName} exist`,
+          error: `Username ${username} does not exist`,
         });
         return;
       }
@@ -45,20 +50,15 @@ export function isUserValid(req: Request, res: Response) {
         return;
       }
 
-      logger.log("info", `${userName} has logged in`);
-      res.cookie("Token", generateToken(userName), {httpOnly:true})
-      res.json({ goahead: true, userName: userName });
+      logger.log("info", `${username} has logged in from ${ip.slice(7)}`);
+      res.cookie("Token", generateToken(username), { httpOnly: true });
+      res.json({ goahead: true, username: username });
     })
-    .catch(
-    function(err) {
+    .catch(function (err) {
       logger.log("error", err);
-      res
-        .status(500)
-        .json({
-          goahead: false,
-          error: "An unexpected error occurred while accessing the database.",
-        });
-    }
-  )
-
+      res.status(500).json({
+        goahead: false,
+        error: "An unexpected error occurred while accessing the database.",
+      });
+    });
 }
