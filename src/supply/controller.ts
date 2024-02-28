@@ -7,8 +7,8 @@ import { Details, PrintSupply, StudentInfo, SubjectDetails } from "../interfaces
 
 //Supply search
 export async function supplySearch(req: Request, res: Response) {
-    const rollno = req.params.rollno;
-    if (isAnyUndefined(rollno)) {
+    const rollNo = req.query.rollNo;
+    if (isAnyUndefined(rollNo)) {
         res.status(400).json({ error: responses.NotAllParamsGiven });
         return;
     }
@@ -17,14 +17,14 @@ export async function supplySearch(req: Request, res: Response) {
     let details:Details={};
     
     try {
-        let printSupplyTable = await dbQuery(`select subName from printSupply where rollNo = '${rollno}'`) as PrintSupply[];
+        let printSupplyTable = await dbQuery(`select subName from printSupply where rollNo = '${rollNo}'`) as PrintSupply[];
         // Checking whether the std is already in the print table for registration otherwise fetching std details from the studentInfo table which are not paid
         let query = (printSupplyTable.length > 0)?`select subCode, subName from printSupply where rollNo = ? and acYear = ? and sem = ?`:
         `select t.subCode,t.subName from studentInfo t LEFT JOIN paidSupply p ON t.subCode=p.subCode and t.rollNo=p.rollNo where t.rollNo=? and t.grade='F' and t.acYear=? and t.sem=? and p.subCode is null and p.rollNo is null`
         
         for (let i = 0; i < 8; i++) {
             sem=(sem==1)?2:1;
-            let printSupplyTable = await dbQuery(query, [rollno, year, sem]) as StudentInfo[];               
+            let printSupplyTable = await dbQuery(query, [rollNo, year, sem]) as StudentInfo[];               
             year=(i&1)?++year:year;
             let tempnames:string[]=[]
             let tempcodes:string[]=[]
@@ -51,15 +51,15 @@ export async function supplySearch(req: Request, res: Response) {
 
 //insertion function into printSupply and paidSupply
 async function insert(req:Request,table:boolean){
-    const rollno:string = req.params.rollno;
-    const userName:string = req.body.userName;
+    const rollNo:string = req.params.rollNo;
+    const username:string = req.body.username;
     let list:any=[req.body.A.subCodes,req.body.B.subCodes,req.body.C.subCodes,req.body.D.subCodes,req.body.E.subCodes,req.body.F.subCodes,req.body.G.subCodes,req.body.H.subCodes]
-    if (isAnyUndefined(rollno, userName, ...list)) {
+    if (isAnyUndefined(rollNo, username, ...list)) {
         throw responses.NotAllParamsGiven;
     }
     let semChar:string = "A" , year:number = 1,sem:number = 1
     //if table is true then insertion is performed into paidSupply else printSupply
-    let table_name:string = table?"paidSupply":"printSupply"
+    let tableName:string = table?"paidSupply":"printSupply"
     for(const semSubCodes of list){
         for(const subCode of semSubCodes){
             console.log(semSubCodes,subCode)
@@ -67,8 +67,8 @@ async function insert(req:Request,table:boolean){
                 let result:any=await dbQuery(`select distinct studentInfo.subName from studentInfo where studentInfo.subCode="${subCode}"`)
                 if(result.length>0){
                     let subName=result[0]["subName"]
-                    await dbQuery(`insert ignore into ${table_name}(rollNo, subCode, subName,acYear, sem, regDate,user) VALUES
-                    ("${rollno}" ,"${subCode}","${subName}", ${year} ,${sem} ,curdate(),"${userName}")`)
+                    await dbQuery(`insert ignore into ${tableName}(rollNo, subCode, subName,acYear, sem, regDate,user) VALUES
+                    ("${rollNo}" ,"${subCode}","${subName}", ${year} ,${sem} ,curdate(),"${username}")`)
                 }
             }catch (err) {
                 logger.log("error", err);
@@ -100,7 +100,7 @@ export async function printSupply(req: Request, res: Response) {
 export async function paidSupply(req: Request, res: Response) {
     try{
         await insert(req,true)
-        await dbQuery(`delete from printSupply where rollNo = "${req.params.rollno}"`)
+        await dbQuery(`delete from printSupply where rollNo = "${req.params.rollNo}"`)
         res.send({ done: true });
     }
     catch (err) {

@@ -13,7 +13,7 @@ type Sem = 0 | 1 | 2;
 // Getting Student Details
 
 export async function getStdDetails(req: Request, res: Response) {
-    const rollNo: string = req.params.rollNo;
+    const rollNo: string = req.query.rollNo as string;
     const acYear = parseInt(req.query.acYear as string) as Acyear;
     const sem = parseInt(req.query.sem as string) as Sem;
     const tableName: string = req.query.tableName as string;
@@ -123,14 +123,14 @@ export async function deleteStdDetails(req: Request, res: Response) {
 
 //adding a new user
 export async function addUser(req: Request, res: Response) {
-    const userName:string = req.body.userName;
+    const username:string = req.body.username;
     const password:string= md5(req.body.password);
     const displayName:string =req.body.displayName;
-    if (isAnyUndefined(userName, password,displayName)) {
+    if (isAnyUndefined(username, password,displayName)) {
         return res.status(400).json(responses.NotAllParamsGiven);
     }
     try{
-        await dbQuery(`INSERT INTO users VALUES ('${userName}','${password}','${displayName}')`)
+        await dbQuery(`INSERT INTO users VALUES ('${username}','${password}','${displayName}')`)
         res.json({done : true })
     }catch(err){
         logger.log("error", err);
@@ -140,12 +140,12 @@ export async function addUser(req: Request, res: Response) {
 
 //deleting a user
 export async function deleteUser(req: Request, res: Response) {
-    const userName = req.body.userName;
-    if (isAnyUndefined(userName)) {
+    const username = req.body.username;
+    if (isAnyUndefined(username)) {
         return res.status(400).json(responses.NotAllParamsGiven);
     }
     try{
-        await dbQuery(`DELETE FROM users WHERE userName='${userName}'`)
+        await dbQuery(`DELETE FROM users WHERE userName='${username}'`)
         res.json({deleted : true })
     }catch(err){
         logger.log("error", err);
@@ -155,8 +155,8 @@ export async function deleteUser(req: Request, res: Response) {
 
 export async function updateUser(req: Request, res: Response) {
     const context= req.query.context;
-    const userName :string= req.body.userName;
-    if (isAnyUndefined(context,userName)) {
+    const username :string= req.body.username;
+    if (isAnyUndefined(context,username)) {
         return res.status(400).json(responses.NotAllParamsGiven);
     }
     try{
@@ -165,14 +165,14 @@ export async function updateUser(req: Request, res: Response) {
             if (isAnyUndefined(newPassword)) {
                 return res.status(400).json(responses.NotAllParamsGiven);
             }
-            await dbQuery(`UPDATE users SET password='${newPassword}' WHERE userName='${userName}'`)
+            await dbQuery(`UPDATE users SET password='${newPassword}' WHERE userName='${username}'`)
             res.json({updated : true })
         }else if(context == "displayName"){
             const displayName:string =req.body.displayName;
             if (isAnyUndefined(displayName)) {
                 return res.status(400).json(responses.NotAllParamsGiven);
             }
-            await dbQuery(`UPDATE users SET displayName='${displayName}' WHERE userName='${userName}'`)
+            await dbQuery(`UPDATE users SET displayName='${displayName}' WHERE userName='${username}'`)
             res.json({updated : true })
         }else{
             res.send("give appropriate parameter value")

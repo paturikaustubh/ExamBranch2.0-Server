@@ -13,7 +13,7 @@ export async function searchCBT(req: Request, res: Response) {
     const sem = req.query.sem;
     const reg = req.query.reg;
     const branch = req.query.branch;
-    const rollNo = req.params.rollNo;
+    const rollNo = req.query.rollNo;
 
     if(isAnyUndefined(acYear, sem, reg, branch, rollNo)) {
         res.status(400).json({
