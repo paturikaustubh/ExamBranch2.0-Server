@@ -12,37 +12,35 @@ export async function revalSearch(req: Request, res: Response) {
     const rollNum: string = req.params.rollNum;
     const examMonth = req.query.examMonth;
     const examYear = req.query.examYear;
-    let details: Details = {};
+    let subjects: Details = {};
     if (isAnyUndefined(rollNum, examMonth, examYear)) {
         res.status(400).json({ error: responses.NotAllParamsGiven });
         return;
     }
-    let subjDetails: { subjCodes: string[]; subjNames: string[] }[] = [];
+    let subjDetails: { subCodes: string[]; subNames: string[] }[] = [];
     try {
         const result: any = await dbQuery(`SELECT subName FROM printReval WHERE rollNo = '${rollNum}';`);
         // Checking whether the std is already in the print table for registration otherwise fetching std details from the studentInfo table which are not paid
         const query: string = (result.length > 0) ? `SELECT subCode, subName FROM printReval WHERE rollNo = ? AND acYear = ? AND sem = ?` :
             `SELECT std.subCode, std.subName FROM studentInfo std LEFT JOIN paidReEvaluation paidStd ON std.subCode = paidStd.subCode AND std.rollNo = paidStd.rollNo WHERE std.rollNo = ? AND std.exMonth = ${examMonth} AND std.exYear = ${examYear} AND std.acYear = ? AND std.sem = ? AND paidStd.subCode IS NULL AND paidStd.rollNo IS NULL`;
-        
         let year: number = 1, sem: number = 1;
         for (let i = 0; i < 8; i++) {
             const result: any = await dbQuery(query, [rollNum, year, sem]);
-            let subjCodes: string[] = [];
-            let subjNames: string[] = [];
+            let subCodes: string[] = [];
+            let subNames: string[] = [];
             result.forEach((val: { subCode: string; subName: string; }) => {
-                subjCodes.push(val.subCode);
-                subjNames.push(val.subName);
+                subCodes.push(val.subCode);
+                subNames.push(val.subName);
             });
             year = (i & 1) ? ++year : year;
             sem = (sem == 1) ? 2 : 1;
-            subjDetails.push({ subjCodes: subjCodes, subjNames: subjNames });
+            subjDetails.push({ subCodes: subCodes, subNames: subNames });
         }
         subjDetails.forEach((subjDetails, index) => {
             const semCode = String.fromCharCode("A".charCodeAt(0) + index);
-            details[semCode] = subjDetails;
+            subjects[semCode] = subjDetails;
         });
-        JSON.stringify(details);
-        res.json(details);
+        res.json({subjects, printTable: (result.length > 0)});
     } catch (err) {
         logger.log("error", err);
         res.json({ error: responses.ErrorWhileDBRequest });
@@ -62,11 +60,11 @@ async function revalProcess(req: Request, reg?: string) {
     }
     const date = dayjs().format("DD-MMM-YY");
     for (const subjects of details) {
-        for (let i = 0; i < subjects.subjCodes.length; i++) {
+        for (let i = 0; i < subjects.subCodes.length; i++) {
             try {
-                const [subjCode, subjName] = [subjects.subjCodes[i], subjects.subjNames[i]];
-                (reg === undefined) ? await dbQuery(`INSERT IGNORE INTO printReval (rollNo, subCode, subName, acYear, sem, user, regDate) VALUES ('${rollNum}', '${subjCode}', '${subjName}', ${year}, ${sem}, '${userName}', '${date}')`) :
-                    await dbQuery(`INSERT IGNORE INTO paidReEvaluation (rollNo, subCode, subName, acYear, sem, user, stat, regDate) VALUES ('${rollNum}', '${subjCode}', '${subjName}', '${year}', '${sem}', '${userName}', '${(reg === semCode) ? 'R' : ''}', '${date}')`); 
+                const [subCode, subName] = [subjects.subCodes[i], subjects.subNames[i]];
+                (reg === undefined) ? await dbQuery(`INSERT IGNORE INTO printReval (rollNo, subCode, subName, acYear, sem, user, regDate) VALUES ('${rollNum}', '${subCode}', '${subName}', ${year}, ${sem}, '${userName}', '${date}')`) :
+                    await dbQuery(`INSERT IGNORE INTO paidReEvaluation (rollNo, subCode, subName, acYear, sem, user, stat, regDate) VALUES ('${rollNum}', '${subCode}', '${subName}', '${year}', '${sem}', '${userName}', '${(reg === semCode) ? 'R' : ''}', '${date}')`); 
             } catch (err) {
                 logger.log("error", err);
                 throw responses.ErrorWhileDBRequestWithDone;

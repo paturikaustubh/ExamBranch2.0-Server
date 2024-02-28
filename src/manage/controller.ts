@@ -32,7 +32,7 @@ export async function getStdDetails(req: Request, res: Response) {
         query = `SELECT * FROM ${tableName} WHERE rollNo = '${rollNum}' AND acYear = ${year} and sem = ${sem} ORDER BY subCode ASC`;
 
     else {
-        res.json({ error: "Invalid Year Sem given" });
+        res.json({ error: responses.BadRequest });
         return;
     }
     try {
