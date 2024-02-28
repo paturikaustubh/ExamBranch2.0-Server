@@ -1,8 +1,10 @@
 import { Response, Request, NextFunction } from "express";
+import md5 from "md5";
+
 import dbQuery from "../services/db";
 import * as logger from "../services/logger";
 import { secret } from "../../config-local";
-import md5 from "md5";
+
 
 function generateToken(username: string) {
   return username + "@" + md5(username + secret);
@@ -33,7 +35,6 @@ export function isUserValid(req: Request, res: Response) {
   dbQuery(`select userName, password, displayName from users where binary userName="${username}"`).then(
     
     function(result: any) {
-      // let response: LoginResponse;
       if (result.length !== 1) {
         res.json({
           goahead: false,
@@ -61,3 +62,4 @@ export function isUserValid(req: Request, res: Response) {
       });
     });
 }
+

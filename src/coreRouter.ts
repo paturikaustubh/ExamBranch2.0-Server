@@ -7,11 +7,12 @@ import cbtRouter from "./cbt";
 import downloadRouter from "./download";
 import { verifyToken } from "./login/controller";
 import manageRouter from "./manage";
+import costRouter from "./cost";
+
 
 const router = Router();
 
 router.use("/", loginRouter);
-
 
 router.use(verifyToken) // comment this to bypass login 
 // router.use("/", uploadRouter);
@@ -20,6 +21,6 @@ router.use("/", revalRouter);
 router.use("/", cbtRouter);
 router.use("/", downloadRouter);
 router.use("/", manageRouter);
-
+router.use("/",costRouter);
 
 export default router;
