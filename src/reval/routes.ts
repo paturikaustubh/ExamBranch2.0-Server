@@ -6,7 +6,7 @@ const router: Router = Router();
 
 // Registering all the Revaluation module routes
 
-router.get("/:rollNum", revalSearch);
+router.get("/search", revalSearch);
 
 router.post("/print/:rollNum", printReval);
 

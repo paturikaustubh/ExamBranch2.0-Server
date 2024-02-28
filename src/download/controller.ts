@@ -124,22 +124,22 @@ export async function downloadHandler({params,query:{sem, acYear}}:Request, res:
 }
 
 export async function manageDBdownloadHandler({ params, query }: Request, res: Response) {
-    const rollNum = params.rollNum as string;
+    const rollNo = params.rollNo as string;
     const tableName = query.tableName as tableNames;
     const acYear: number = parseInt(query.acYear as string);
     const sem: number = parseInt(query.sem as string);
-    if (isAnyUndefined(rollNum, tableName, sem, acYear)) {
+    if (isAnyUndefined(rollNo, tableName, sem, acYear)) {
         return res.status(400).json(responses.NotAllParamsGiven);
     }
     let condition: string;
     if (acYear === 0 && sem === 0)
-        condition = `WHERE rollNo = '${rollNum}' `;
+        condition = `WHERE rollNo = '${rollNo}' `;
         
     else if (acYear !== 0 && sem === 0)
-        condition = `WHERE rollNo = '${rollNum}' AND acYear = ${acYear} `;
+        condition = `WHERE rollNo = '${rollNo}' AND acYear = ${acYear} `;
     
     else if (acYear !== 0 && sem !== 0)
-        condition = `WHERE rollNo = '${rollNum}' AND acYear = ${acYear} and sem = ${sem} `;
+        condition = `WHERE rollNo = '${rollNo}' AND acYear = ${acYear} and sem = ${sem} `;
 
     else {
         res.json({ error: responses.BadRequest });
@@ -147,7 +147,7 @@ export async function manageDBdownloadHandler({ params, query }: Request, res: R
     }
     if( tableName in tables) {
         const {query, ordering, fileName} = tables[tableName];
-        await downloadTable(tableName, res, `${rollNum}_${fileName}_${dayjs().format('DD-MMM-YY_hh-mm_A')}`, query + condition + ordering);
+        await downloadTable(tableName, res, `${rollNo}_${fileName}_${dayjs().format('DD-MMM-YY_hh-mm_A')}`, query + condition + ordering);
     }else {
         res.status(400).json(responses.BadRequest)
     }
