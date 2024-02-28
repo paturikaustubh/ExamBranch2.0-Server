@@ -30,7 +30,7 @@ export function isUserValid(req: Request, res: Response) {
   const password = req.body.password;
   const ip = req.ip as string;
 
-  dbQuery(`select userName, password, displayName from users where binary userName="${userName}"`).then(
+  dbQuery(`select userName, password, displayName from users where binary userName="${username}"`).then(
     
     function(result: any) {
       // let response: LoginResponse;
