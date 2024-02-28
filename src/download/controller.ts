@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, query } from "express";
 import path from "path";
 import dbQuery, { dbQueryWithFields } from "../services/db";
 import * as logger from "../services/logger";
@@ -39,6 +39,7 @@ async function downloadTable(tableName: string, res: Response, fileNamePrefix: s
 
     try {
         [result, fields] = await dbQueryWithFields(query) as [any, FieldInfo[]];
+        console.log(fields);
     } catch (err) {
         return res.status(500).json(responses.ErrorWhileDBRequestWithDone);
     }
@@ -66,38 +67,43 @@ async function downloadTable(tableName: string, res: Response, fileNamePrefix: s
     });
 }
 
-type tableNames = 'paidsupply' | 'printsupply' | 'paidreval' | 'printreval' | 'paidcbt' | 'printcbt'
+type tableNames = 'paidSupply' | 'printSupply' | 'paidReEvaluation' | 'printReval' | 'paidCBT' | 'printCBT' | 'studentInfo'
 
 const tables:{[key in tableNames]:{query:string, ordering:string, fileName:string}} = {
-    paidsupply: {
-        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" from paidsupply `,
-        ordering:" order by rollNo, acYear, sem, subCode ",
+    paidSupply: {
+        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" from paidSupply `,
+        ordering:" ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Registred Supply"
     },
-    printsupply: {
-        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printsupply `,
-        ordering:" order by rollNo, acYear, sem, subCode ",
+    printSupply: {
+        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printSupply `,
+        ordering:" ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Un-Registred Supply"
     },
-    paidreval: {
-        query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM paidreval `,
+    paidReEvaluation: {
+        query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM paidReEvaluation `,
         ordering: " ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Registred Reval"
     },
-    printreval: {
-        query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printreval `,
+    printReval: {
+        query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printReval `,
         ordering: " ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Un-Registred Reval"
     },
-    paidcbt: {
-        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM paidcbt `,
-        ordering:" order by rollNo, acYear, sem, subCode ",
+    paidCBT: {
+        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM paidCBT `,
+        ordering:" ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Registred CBT"
     },
-    printcbt: {
-        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM printcbt `,
-        ordering:" ORDER by rollNo, acYear, sem, subCode ",
+    printCBT: {
+        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM printCBT `,
+        ordering:" ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Un-Registred CBT"
+    },
+    studentInfo: {
+        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", grade AS "Grade", acYear AS "Year", sem AS "Semester", exYear AS "Exam Year", exMonth AS "Exam Month" FROM studentInfo `,
+        ordering:" ORDER BY acYear, sem, subCode ",
+        fileName: "Student Info"
     }
 
 }
@@ -111,9 +117,38 @@ export async function downloadHandler({params,query:{sem, acYear}}:Request, res:
     if( tableName in tables) {
         const {query, ordering, fileName} = tables[tableName];
         await downloadTable(tableName, res, `${fileName}_${dayjs().format('DD-MMM-YY_hh-mm_A')}`, query + condition + ordering);
-    }else {
-        console.log(tableName, Object.keys(tables))
+    } else {
         // TODO: better msg
+        res.status(400).json(responses.BadRequest)
+    }
+}
+
+export async function manageDBdownloadHandler({ params, query }: Request, res: Response) {
+    const rollNo = params.rollNo as string;
+    const tableName = query.tableName as tableNames;
+    const acYear: number = parseInt(query.acYear as string);
+    const sem: number = parseInt(query.sem as string);
+    if (isAnyUndefined(rollNo, tableName, sem, acYear)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
+    let condition: string;
+    if (acYear === 0 && sem === 0)
+        condition = `WHERE rollNo = '${rollNo}' `;
+        
+    else if (acYear !== 0 && sem === 0)
+        condition = `WHERE rollNo = '${rollNo}' AND acYear = ${acYear} `;
+    
+    else if (acYear !== 0 && sem !== 0)
+        condition = `WHERE rollNo = '${rollNo}' AND acYear = ${acYear} and sem = ${sem} `;
+
+    else {
+        res.json({ error: responses.BadRequest });
+        return;
+    }
+    if( tableName in tables) {
+        const {query, ordering, fileName} = tables[tableName];
+        await downloadTable(tableName, res, `${rollNo}_${fileName}_${dayjs().format('DD-MMM-YY_hh-mm_A')}`, query + condition + ordering);
+    }else {
         res.status(400).json(responses.BadRequest)
     }
 }
