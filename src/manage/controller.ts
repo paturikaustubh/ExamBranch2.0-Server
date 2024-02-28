@@ -3,6 +3,7 @@ import * as logger from "../services/logger";
 import dbQuery from "../services/db";
 import dayjs from "dayjs";
 import { isAnyUndefined, responses } from "../services/common";
+import md5 from "md5";
 
 type Acyear = 0 | 1 | 2 | 3 | 4;
 type Sem = 0 | 1 | 2;
@@ -12,7 +13,7 @@ type Sem = 0 | 1 | 2;
 // Getting Student Details
 
 export async function getStdDetails(req: Request, res: Response) {
-    const rollNo: string = req.params.rollNo;
+    const rollNo: string = req.query.rollNo as string;
     const acYear = parseInt(req.query.acYear as string) as Acyear;
     const sem = parseInt(req.query.sem as string) as Sem;
     const tableName: string = req.query.tableName as string;
@@ -119,4 +120,68 @@ export async function deleteStdDetails(req: Request, res: Response) {
         return res.json({ error: responses.ErrorWhileDBRequestWithDeleted });
     }
 }
+
+//adding a new user
+export async function addUser(req: Request, res: Response) {
+    const username:string = req.body.username;
+    const password:string= md5(req.body.password);
+    const displayName:string =req.body.displayName;
+    if (isAnyUndefined(username, password,displayName)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
+    try{
+        await dbQuery(`INSERT INTO users VALUES ('${username}','${password}','${displayName}')`)
+        res.json({done : true })
+    }catch(err){
+        logger.log("error", err);
+        return res.json({ error: responses.ErrorWhileDBRequestWithDone });
+    }
+}
+
+//deleting a user
+export async function deleteUser(req: Request, res: Response) {
+    const username = req.body.username;
+    if (isAnyUndefined(username)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
+    try{
+        await dbQuery(`DELETE FROM users WHERE userName='${username}'`)
+        res.json({deleted : true })
+    }catch(err){
+        logger.log("error", err);
+        return res.json({ error: responses.ErrorWhileDBRequestWithDeleted });
+    }
+}
+
+export async function updateUser(req: Request, res: Response) {
+    const context= req.query.context;
+    const username :string= req.body.username;
+    if (isAnyUndefined(context,username)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
+    try{
+        if(context =="password"){
+            const newPassword = md5(req.body.newPassword);
+            if (isAnyUndefined(newPassword)) {
+                return res.status(400).json(responses.NotAllParamsGiven);
+            }
+            await dbQuery(`UPDATE users SET password='${newPassword}' WHERE userName='${username}'`)
+            res.json({updated : true })
+        }else if(context == "displayName"){
+            const displayName:string =req.body.displayName;
+            if (isAnyUndefined(displayName)) {
+                return res.status(400).json(responses.NotAllParamsGiven);
+            }
+            await dbQuery(`UPDATE users SET displayName='${displayName}' WHERE userName='${username}'`)
+            res.json({updated : true })
+        }else{
+            res.send("give appropriate parameter value")
+        }
+       
+    }catch(err){
+        logger.log("error", err);
+        return res.json({ error: responses.ErrorWhileDBRequestWithUpdated });
+    }
+}
+
 
