@@ -26,14 +26,13 @@ export function verifyToken(
   res.status(401).send("Unauthorized"); // Respond with Unauthorized status
 }
 export function isUserValid(req: Request, res: Response) {
-  const username = req.query.username as string;
-  const password = req.query.password as string;
+  const username = req.body.username;
+  const password = req.body.password;
   const ip = req.ip as string;
 
-  dbQuery(
-    `SELECT username, password FROM users WHERE BINARY username="${username}";`
-  )
-    .then(function (result: any) {
+  dbQuery(`select userName, password, displayName from users where binary userName="${userName}"`).then(
+    
+    function(result: any) {
       // let response: LoginResponse;
       if (result.length !== 1) {
         res.json({

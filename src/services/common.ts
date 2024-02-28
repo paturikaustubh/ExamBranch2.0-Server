@@ -26,10 +26,16 @@ export const responses = {
         done: false, 
         error: "Error reading or processing file from the file check Server log for more info" 
     },
+    UnsupportedFileExt:{
+        error: "Unsupported file ext"
+    },
     PageNotFound:{
         error:"Page not found"
     },
     BadRequest:{
         error: "Bad Request"
+    },
+    DoneMSG:{
+        done: true
     }
 }
