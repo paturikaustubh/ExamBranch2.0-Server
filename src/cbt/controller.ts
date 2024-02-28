@@ -13,7 +13,7 @@ export async function searchCBT(req: Request, res: Response) {
     const sem = req.query.sem;
     const reg = req.query.reg;
     const branch = req.query.branch;
-    const rollNo = req.params.rollNo;
+    const rollNo = req.query.rollNo;
 
     if(isAnyUndefined(acYear, sem, reg, branch, rollNo)) {
         res.status(400).json({
@@ -53,9 +53,9 @@ async function processCBT(req: Request, res: Response, tableName: string) {
     const rollNo:string = req.params.rollNo;
     const subNames: string[] = req.body.subNames;
     const branch: string = req.body.branch;
-    const userName:string = req.body.userName;
+    const username:string = req.body.username;
     
-    if(isAnyUndefined(acYear, sem, subCodes, subNames, branch, rollNo, userName)) {
+    if(isAnyUndefined(acYear, sem, subCodes, subNames, branch, rollNo, username)) {
         res.status(400).json(responses.NotAllParamsGiven);
         return;
     }
@@ -64,13 +64,13 @@ async function processCBT(req: Request, res: Response, tableName: string) {
         await Promise.all(
             subCodes.map(
                 async (subCode, index) => {
-                    await dbQuery(`INSERT IGNORE INTO ${tableName}(rollNo, subCode, acYear, sem, subName, regDate, branch, user) values ("${rollNo}","${subCode}","${acYear}","${sem}","${subNames[index]}", "${dayjs().format('DD-MMM-YY')}","${branch}", "${userName}")`);
+                    await dbQuery(`INSERT IGNORE INTO ${tableName}(rollNo, subCode, acYear, sem, subName, regDate, branch, user) values ("${rollNo}","${subCode}","${acYear}","${sem}","${subNames[index]}", "${dayjs().format('DD-MMM-YY')}","${branch}", "${username}")`);
                 }
             )
         )
         if(tableName === 'paidcbt')
         await dbQuery(`DELETE FROM printcbt WHERE rollNo = "${rollNo}"`);
-        logger.log('info', `${userName} add rollNo: ${rollNo} to ${tableName} `);
+        logger.log('info', `${username} add rollNo: ${rollNo} to ${tableName} `);
         res.json({ done: true })
     } catch (err) {
         logger.log('error', err);

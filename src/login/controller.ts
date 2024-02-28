@@ -1,8 +1,10 @@
 import { Response, Request, NextFunction } from "express";
+import md5 from "md5";
+
 import dbQuery from "../services/db";
 import * as logger from "../services/logger";
 import { secret } from "../../config-local";
-import md5 from "md5";
+
 
 function generateToken(username: string) {
   return username + "@" + md5(username + secret);
@@ -26,15 +28,13 @@ export function verifyToken(
   res.status(401).send("Unauthorized"); // Respond with Unauthorized status
 }
 export function isUserValid(req: Request, res: Response) {
-  const username = req.query.username as string;
-  const password = req.query.password as string;
+  const username = req.body.username;
+  const password = req.body.password;
   const ip = req.ip as string;
 
-  dbQuery(
-    `SELECT username, password FROM users WHERE BINARY username="${username}";`
-  )
-    .then(function (result: any) {
-      // let response: LoginResponse;
+  dbQuery(`select userName, password, displayName from users where binary userName="${username}"`).then(
+    
+    function(result: any) {
       if (result.length !== 1) {
         res.json({
           goahead: false,
@@ -62,3 +62,4 @@ export function isUserValid(req: Request, res: Response) {
       });
     });
 }
+

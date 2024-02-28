@@ -3,6 +3,7 @@ import * as logger from "../services/logger";
 import dbQuery from "../services/db";
 import dayjs from "dayjs";
 import { isAnyUndefined, responses } from "../services/common";
+import md5 from "md5";
 
 type Acyear = 0 | 1 | 2 | 3 | 4;
 type Sem = 0 | 1 | 2;
@@ -12,27 +13,27 @@ type Sem = 0 | 1 | 2;
 // Getting Student Details
 
 export async function getStdDetails(req: Request, res: Response) {
-    const rollNum: string = req.params.rollNum;
-    const year = parseInt(req.query.year as string) as Acyear;
+    const rollNo: string = req.query.rollNo as string;
+    const acYear = parseInt(req.query.acYear as string) as Acyear;
     const sem = parseInt(req.query.sem as string) as Sem;
     const tableName: string = req.query.tableName as string;
-    if (isAnyUndefined(rollNum, year, sem, tableName)) {
+    if (isAnyUndefined(rollNo, acYear, sem, tableName)) {
         res.status(400).json({ error: responses.NotAllParamsGiven });
         return;
     }
     let query: string;
 
-    if (year === 0 && sem === 0)
-        query = `SELECT * FROM ${tableName} WHERE rollNo = '${rollNum}' ORDER BY acYear ASC, sem ASC, subCode ASC`;
+    if (acYear === 0 && sem === 0)
+        query = `SELECT * FROM ${tableName} WHERE rollNo = '${rollNo}' ORDER BY acYear ASC, sem ASC, subCode ASC`;
         
-    else if (year !== 0 && sem === 0)
-        query = `SELECT * FROM ${tableName} WHERE rollNo = '${rollNum}' AND acYear = ${year} ORDER BY sem ASC, subCode ASC`;
+    else if (acYear !== 0 && sem === 0)
+        query = `SELECT * FROM ${tableName} WHERE rollNo = '${rollNo}' AND acYear = ${acYear} ORDER BY sem ASC, subCode ASC`;
     
-    else if (year !== 0 && sem !== 0)
-        query = `SELECT * FROM ${tableName} WHERE rollNo = '${rollNum}' AND acYear = ${year} and sem = ${sem} ORDER BY subCode ASC`;
+    else if (acYear !== 0 && sem !== 0)
+        query = `SELECT * FROM ${tableName} WHERE rollNo = '${rollNo}' AND acYear = ${acYear} and sem = ${sem} ORDER BY subCode ASC`;
 
     else {
-        res.json({ error: "Invalid Year Sem given" });
+        res.json({ error: responses.BadRequest });
         return;
     }
     try {
@@ -48,22 +49,22 @@ export async function getStdDetails(req: Request, res: Response) {
 // Editing Student Details
 
 export async function editStdDetails(req: Request, res: Response) {
-    const rollNum: string = req.params.rollNum;
-    const year: number = parseInt(req.body.year) as Acyear;
+    const rollNo: string = req.params.rollNo;
+    const acYear: number = parseInt(req.body.acYear) as Acyear;
     const sem: number = parseInt(req.body.sem) as Sem;
     const tableName: string = req.body.tableName;
-    const subjCode: string = req.body.subjCode;
-    const newSubjCode: string = req.body.newSubjCode;
-    if (isAnyUndefined(rollNum, year, sem, tableName, subjCode, newSubjCode)) {
+    const subCode: string = req.body.subCode;
+    const newSubCode: string = req.body.newSubCode;
+    if (isAnyUndefined(rollNo, acYear, sem, tableName, subCode, newSubCode)) {
         return res.status(400).json(responses.NotAllParamsGiven);
     }
     try {
-        let subjName: any = await dbQuery(`SELECT subName FROM codeNames WHERE subCode = '${newSubjCode}'`);
-        if (subjName.length === 0)
-            return res.json({ error: "Invalid subjCode given" });
-        subjName = subjName[0].subName as string;
-        const query: string = (tableName === "studentInfo") ? `UPDATE ${tableName} SET subCode = '${newSubjCode}', subName = '${subjName}', grade = '${req.body.grade}', acYear = ${year}, sem = ${sem}, exYear = ${req.body.examYear}, exMonth = ${req.body.examMonth} WHERE rollNo = '${rollNum}' AND subCode = '${subjCode}'` :
-            `UPDATE ${tableName} SET subCode = '${newSubjCode}', subName = '${subjName}', acYear= ${year}, sem = ${sem} WHERE rollNo = '${rollNum}' AND subCode = '${subjCode}'`;
+        let subName: any = await dbQuery(`SELECT subName FROM codeNames WHERE subCode = '${newSubCode}'`);
+        if (subName.length === 0)
+            return res.json({ error: "Invalid subCode given" });
+        subName = subName[0].subName as string;
+        const query: string = (tableName === "studentInfo") ? `UPDATE ${tableName} SET subCode = '${newSubCode}', subName = '${subName}', grade = '${req.body.grade}', acYear = ${acYear}, sem = ${sem}, exYear = ${req.body.examYear}, exMonth = ${req.body.examMonth} WHERE rollNo = '${rollNo}' AND subCode = '${subCode}'` :
+            `UPDATE ${tableName} SET subCode = '${newSubCode}', subName = '${subName}', acYear= ${acYear}, sem = ${sem} WHERE rollNo = '${rollNo}' AND subCode = '${subCode}'`;
     
         await dbQuery(query);
         return res.json({ updated: true });
@@ -76,23 +77,23 @@ export async function editStdDetails(req: Request, res: Response) {
 // Adding Student Details
 
 export async function addStdDetails(req: Request, res: Response) {
-    const rollNum: string = req.params.rollNum;
-    const year: number = parseInt(req.body.year) as Acyear;
+    const rollNo: string = req.params.rollNo;
+    const acYear: number = parseInt(req.body.acYear) as Acyear;
     const sem: number = parseInt(req.body.sem) as Sem;
     const tableName: string = req.body.tableName;
-    const subjCode: string = req.body.subjCode;
-    if (isAnyUndefined(rollNum, year, sem, tableName, subjCode)) {
+    const subCode: string = req.body.subCode;
+    if (isAnyUndefined(rollNo, acYear, sem, tableName, subCode)) {
         return res.status(400).json(responses.NotAllParamsGiven);
     }
     const date = dayjs().format("DD-MMM-YY"); 
     try {
-        let subjName: any = await dbQuery(`SELECT subName FROM codeNames WHERE subCode = '${subjCode}'`);
-        if (subjName.length === 0)
-            return res.json({ error: "Invalid subjCode given" });
-        subjName = subjName[0].subName as string;
+        let subName: any = await dbQuery(`SELECT subName FROM codeNames WHERE subCode = '${subCode}'`);
+        if (subName.length === 0)
+            return res.json({ error: "Invalid subCode given" });
+        subName = subName[0].subName as string;
 
-        const query: string = (tableName === "studentInfo") ? `INSERT IGNORE INTO studentInfo (rollNo, subCode, subName, grade, acYear, sem, exYear, exMonth) VALUES ("${rollNum}", "${subjCode}", "${subjName}", "${req.body.grade}", ${year}, ${sem}, "${req.body.examYear}", "${req.body.examMonth}")` :
-            `INSERT IGNORE INTO ${tableName} (rollNo, subCode, subName, acYear, sem, regDate) VALUES ('${rollNum}', '${subjCode}', '${subjName}', ${year}, ${sem}, '${date}')`;
+        const query: string = (tableName === "studentInfo") ? `INSERT IGNORE INTO studentInfo (rollNo, subCode, subName, grade, acYear, sem, exYear, exMonth) VALUES ("${rollNo}", "${subCode}", "${subName}", "${req.body.grade}", ${acYear}, ${sem}, "${req.body.examYear}", "${req.body.examMonth}")` :
+            `INSERT IGNORE INTO ${tableName} (rollNo, subCode, subName, acYear, sem, regDate) VALUES ('${rollNo}', '${subCode}', '${subName}', ${acYear}, ${sem}, '${date}')`;
         await dbQuery(query);
         return res.json({ done: true });
     } catch (err) {
@@ -105,18 +106,82 @@ export async function addStdDetails(req: Request, res: Response) {
 // Deleting Student Details
 
 export async function deleteStdDetails(req: Request, res: Response) {
-    let rollNum: string = req.params.rollNum;
-    let subjCode: string = req.body.subjCode;
+    let rollNo: string = req.params.rollNo;
+    let subCode: string = req.body.subCode;
     let tableName: string = req.body.tableName;
-    if (isAnyUndefined(rollNum, tableName)) {
+    if (isAnyUndefined(rollNo, tableName)) {
         return res.status(400).json(responses.NotAllParamsGiven);
     }
     try {
-        await dbQuery(`DELETE FROM ${tableName} WHERE rollNo = '${rollNum}' ${(subjCode === undefined)? '': `AND subCode = '${subjCode}'`}`);
+        await dbQuery(`DELETE FROM ${tableName} WHERE rollNo = '${rollNo}' ${(subCode === undefined)? '': `AND subCode = '${subCode}'`}`);
         res.json({ deleted: true });
     } catch (err) {
         logger.log("error", err);
         return res.json({ error: responses.ErrorWhileDBRequestWithDeleted });
     }
 }
+
+//adding a new user
+export async function addUser(req: Request, res: Response) {
+    const username:string = req.body.username;
+    const password:string= md5(req.body.password);
+    const displayName:string =req.body.displayName;
+    if (isAnyUndefined(username, password,displayName)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
+    try{
+        await dbQuery(`INSERT INTO users VALUES ('${username}','${password}','${displayName}')`)
+        res.json({done : true })
+    }catch(err){
+        logger.log("error", err);
+        return res.json({ error: responses.ErrorWhileDBRequestWithDone });
+    }
+}
+
+//deleting a user
+export async function deleteUser(req: Request, res: Response) {
+    const username = req.body.username;
+    if (isAnyUndefined(username)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
+    try{
+        await dbQuery(`DELETE FROM users WHERE userName='${username}'`)
+        res.json({deleted : true })
+    }catch(err){
+        logger.log("error", err);
+        return res.json({ error: responses.ErrorWhileDBRequestWithDeleted });
+    }
+}
+
+export async function updateUser(req: Request, res: Response) {
+    const context= req.query.context;
+    const username :string= req.body.username;
+    if (isAnyUndefined(context,username)) {
+        return res.status(400).json(responses.NotAllParamsGiven);
+    }
+    try{
+        if(context =="password"){
+            const newPassword = md5(req.body.newPassword);
+            if (isAnyUndefined(newPassword)) {
+                return res.status(400).json(responses.NotAllParamsGiven);
+            }
+            await dbQuery(`UPDATE users SET password='${newPassword}' WHERE userName='${username}'`)
+            res.json({updated : true })
+        }else if(context == "displayName"){
+            const displayName:string =req.body.displayName;
+            if (isAnyUndefined(displayName)) {
+                return res.status(400).json(responses.NotAllParamsGiven);
+            }
+            await dbQuery(`UPDATE users SET displayName='${displayName}' WHERE userName='${username}'`)
+            res.json({updated : true })
+        }else{
+            res.send("give appropriate parameter value")
+        }
+       
+    }catch(err){
+        logger.log("error", err);
+        return res.json({ error: responses.ErrorWhileDBRequestWithUpdated });
+    }
+}
+
 

@@ -1,7 +1,7 @@
 import { Router } from "express";
-import cbtRouter from "./routes";
+import supplyRouter from "./routes";
 
 const router = Router();
 
-
+router.use("/supply", supplyRouter)
 export default router;
