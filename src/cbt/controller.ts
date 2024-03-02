@@ -5,6 +5,7 @@ import * as logger from "../services/logger";
 import { isAnyUndefined, responses } from "../services/common";
 import { CBTSubjectsRow, PrintCBTRow } from "../interfaces/cbt"
 import dayjs from "dayjs";
+import { StudentInfo } from "../interfaces/supply";
 
 
 export async function searchCBT(req: Request, res: Response) {
@@ -26,6 +27,12 @@ export async function searchCBT(req: Request, res: Response) {
     const subNames: string[] = [];
     const mapper: { [key: string]: string } = {};
     try {
+        let rowsInStudentInfo = await dbQuery(`SELECT * FROM studentinfo WHERE rollNo = '${rollNo}' limit 1`) as StudentInfo[];
+        if (rowsInStudentInfo.length == 0) 
+            return res.status(400).json({
+                error: "Enter a valid rollNo"
+            })
+        
         let rowsInPrintTable = await dbQuery(`SELECT * FROM printcbt WHERE rollNo='${rollNo}' and acYear= ${acYear} and sem = ${sem}`) as PrintCBTRow[];
         let printTableExist: boolean = (rowsInPrintTable.length > 0);
 

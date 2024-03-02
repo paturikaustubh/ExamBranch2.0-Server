@@ -27,6 +27,7 @@ export const responses = {
         error: "Error reading or processing file from the file check Server log for more info" 
     },
     UnsupportedFileExt:{
+        done: false,
         error: "Unsupported file ext"
     },
     PageNotFound:{
