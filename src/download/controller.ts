@@ -67,40 +67,40 @@ async function downloadTable(tableName: string, res: Response, fileNamePrefix: s
     });
 }
 
-type tableNames = 'paidSupply' | 'printSupply' | 'paidReEvaluation' | 'printReval' | 'paidCBT' | 'printCBT' | 'studentInfo'
+type tableNames = 'paidsupply' | 'printsupply' | 'paidreevaluation' | 'printreval' | 'paidcbt' | 'printcbt' | 'studentinfo'
 
 const tables:{[key in tableNames]:{query:string, ordering:string, fileName:string}} = {
-    paidSupply: {
-        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" from paidSupply `,
+    paidsupply: {
+        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" from paidsupply `,
         ordering:" ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Registred Supply"
     },
-    printSupply: {
-        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printSupply `,
+    printsupply: {
+        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printsupply `,
         ordering:" ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Un-Registred Supply"
     },
-    paidReEvaluation: {
-        query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM paidReEvaluation `,
+    paidreevaluation: {
+        query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM paidreevaluation `,
         ordering: " ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Registred Reval"
     },
-    printReval: {
-        query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printReval `,
+    printreval: {
+        query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printreval `,
         ordering: " ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Un-Registred Reval"
     },
-    paidCBT: {
-        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM paidCBT `,
+    paidcbt: {
+        query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM paidcbt `,
         ordering:" ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Registred CBT"
     },
-    printCBT: {
+    printcbt: {
         query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM printCBT `,
         ordering:" ORDER BY rollNo, acYear, sem, subCode ",
         fileName: "Un-Registred CBT"
     },
-    studentInfo: {
+    studentinfo: {
         query:`SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", grade AS "Grade", acYear AS "Year", sem AS "Semester", exYear AS "Exam Year", exMonth AS "Exam Month" FROM studentInfo `,
         ordering:" ORDER BY acYear, sem, subCode ",
         fileName: "Student Info"

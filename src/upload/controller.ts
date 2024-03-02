@@ -101,7 +101,7 @@ export async function restoreStudentInfo({body}: Request, res: Response) {
         logger.log('info', "Restoring studentinfo started")
         res.json(await uploadFromLoc(path.join(loc, `backup${ext}`),"studentinfo"))
     } else {
-        res.status(400).json({error:"Unsupported file ext"})
+        res.status(400).json(responses.UnsupportedFileExt)
     }
 
 }
@@ -134,10 +134,10 @@ export async function uploadStudentInfo({body,params:{tableName}}: Request, res:
     const sem = body.sem;
     const exYear = body.exYear;
     const exMonth = body.exMonth;
-    const loc = body.loc.trim()
-    if (isAnyUndefined(loc, ext, acYear, sem, exYear, exMonth)) {
+    if (isAnyUndefined(body.loc, ext, acYear, sem, exYear, exMonth)) {
         return res.status(400).json(responses.NotAllParamsGiven);
     }
+    const loc = body.loc.trim();
 
     if (!supportedExtensions.includes(ext)) 
         return res.status(400).json(responses.UnsupportedFileExt)
@@ -153,10 +153,9 @@ export async function uploadStudentInfo({body,params:{tableName}}: Request, res:
 
     }catch (err) {
         logger.log('error', `Uploading into ${tableName} falied: Error reading or process from the file`, err);
-        return responses.ErrorWhileReadingOrProcessing;
+        return res.json(responses.ErrorWhileReadingOrProcessing);
     }
 
-    console.log("data",data);
     try {
         const insertQuery = `replace into studentinfo (select ?, ?, subName, ?,${acYear},${sem},${exYear},${exMonth},NULL,NULL,NULL,NULL from codeNames where subCode=? limit 1)`;
         

@@ -15,7 +15,7 @@ const router = Router();
 router.use("/", loginRouter);
 
 router.use(verifyToken); // comment this to bypass login
-// router.use("/", uploadRouter);
+router.use("/", uploadRouter);
 router.use("/", supplyRouter);
 router.use("/", revalRouter);
 router.use("/", cbtRouter);

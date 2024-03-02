@@ -52,7 +52,7 @@ export function isUserValid(req: Request, res: Response) {
 
       logger.log("info", `${username} has logged in from ${ip.slice(7)}`);
       res.cookie("Token", generateToken(username), { httpOnly: true });
-      res.json({ goahead: true, username: username });
+      res.json({ goahead: true, username: username, displayName:result[0]['displayName'] });
     })
     .catch(function (err) {
       logger.log("error", err);
