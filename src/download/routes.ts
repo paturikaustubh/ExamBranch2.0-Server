@@ -5,7 +5,7 @@ const router: Router = Router();
  
 // Registering all the module routes here
 router.get("table/:tableName", downloadHandler);
-router.get("/manageDB/:rollNum", manageDBdownloadHandler);
+router.get("/manageDB/:rollNo", manageDBdownloadHandler);
 
  
 export default router; 

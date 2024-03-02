@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 import * as logger from "../services/logger";
 import dbQuery from "../services/db";
-import { Details } from "../interfaces/reval";
+import { Details, RevalRow } from "../interfaces/reval";
 import dayjs from "dayjs";
 import { isAnyUndefined, responses } from "../services/common";
 
@@ -10,22 +10,22 @@ import { isAnyUndefined, responses } from "../services/common";
 
 export async function revalSearch(req: Request, res: Response) {
     const rollNo: string = req.query.rollNo as string;
-    const examMonth: number = parseInt(req.query.examMonth as string);
-    const examYear: number = parseInt(req.query.examYear as string);
+    const exMonth: number = parseInt(req.query.examMonth as string);
+    const exYear: number = parseInt(req.query.examYear as string);
     let subjects: Details = {};
-    if (isAnyUndefined(rollNo, examMonth, examYear)) {
+    if (isAnyUndefined(rollNo, exMonth, exYear)) {
         res.status(400).json({ error: responses.NotAllParamsGiven });
         return;
     }
     let subjDetails: { subCodes: string[]; subNames: string[] }[] = [];
     try {
-        const result: any = await dbQuery(`SELECT subName FROM printReval WHERE rollNo = '${rollNo}';`);
+        const result = await dbQuery(`SELECT subCode, subName FROM printReval WHERE rollNo = '${rollNo}';`) as RevalRow[];
         // Checking whether the std is already in the print table for registration otherwise fetching std details from the studentInfo table which are not paid
         const query: string = (result.length > 0) ? `SELECT subCode, subName FROM printReval WHERE rollNo = ? AND acYear = ? AND sem = ?` :
-            `SELECT std.subCode, std.subName FROM studentInfo std LEFT JOIN paidReEvaluation paidStd ON std.subCode = paidStd.subCode AND std.rollNo = paidStd.rollNo WHERE std.rollNo = ? AND std.exMonth = ${examMonth} AND std.exYear = ${examYear} AND std.acYear = ? AND std.sem = ? AND paidStd.subCode IS NULL AND paidStd.rollNo IS NULL`;
+            `SELECT std.subCode, std.subName FROM studentInfo std LEFT JOIN paidReEvaluation paidStd ON std.subCode = paidStd.subCode AND std.rollNo = paidStd.rollNo WHERE std.rollNo = ? AND std.exMonth = ${exMonth} AND std.exYear = ${exYear} AND std.acYear = ? AND std.sem = ? AND paidStd.subCode IS NULL AND paidStd.rollNo IS NULL`;
         let year: number = 1, sem: number = 1;
         for (let i = 0; i < 8; i++) {
-            const result: any = await dbQuery(query, [rollNo, year, sem]);
+            const result: any = await dbQuery(query, [rollNo, year, sem]) as RevalRow[];
             let subCodes: string[] = [];
             let subNames: string[] = [];
             result.forEach((val: { subCode: string; subName: string; }) => {
