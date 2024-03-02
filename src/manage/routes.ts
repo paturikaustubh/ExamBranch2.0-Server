@@ -5,17 +5,20 @@ import { getStdDetails, editStdDetails, addStdDetails, deleteStdDetails , addUse
 
 const router: Router = Router();
 
-// Registering all the Manage DataBase module routes
-
+// Registering all the Manage Database routes
 
 // Getting Paid and Student Details 
 router.get("/database/student-info", getStdDetails);
 // Edit Student Details
-router.patch("/database/student-info/:rollNum", editStdDetails);
+router.patch("/database/student-info/:rollNo", editStdDetails);
 // Add Student Details
-router.post("/database/student-info/:rollNum", addStdDetails);
+router.post("/database/student-info/:rollNo", addStdDetails);
 // Deleting Student Details 
-router.delete("/database/student-info/:rollNum", deleteStdDetails);
+router.delete("/database/student-info/:rollNo", deleteStdDetails);
+
+
+// Registering all the Manage Users routes
+
 // Adding a User
 router.post("/user", addUser);
 // Deleting a User

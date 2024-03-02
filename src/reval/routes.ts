@@ -8,9 +8,9 @@ const router: Router = Router();
 
 router.get("/search", revalSearch);
 
-router.post("/print/:rollNum", printReval);
+router.post("/print/:rollNo", printReval);
 
-router.post("/register/:rollNum", registerReval);
+router.post("/register/:rollNo", registerReval);
 
 
 

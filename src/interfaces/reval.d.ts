@@ -4,3 +4,9 @@ export interface Details {
         subNames: string[];
     };
 }
+
+
+export interface RevalRow {
+    subCode: string;
+    subName:string;
+}
