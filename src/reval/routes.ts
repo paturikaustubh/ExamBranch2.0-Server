@@ -9,6 +9,6 @@ router.get("/search", revalSearch);
 
 router.post("/print/:rollNo", printReval);
 
-router.post("/register/:rollNo", registerReval);
+router.post("/paid/:rollNo", registerReval);
 
 export default router;

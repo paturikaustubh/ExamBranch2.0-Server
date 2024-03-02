@@ -8,13 +8,13 @@ const router: Router = Router();
 // Registering all the Manage Database routes
 
 // Getting Paid and Student Details 
-router.get("/database/student-info", getStdDetails);
+router.get("/database/search", getStdDetails);
 // Edit Student Details
-router.patch("/database/student-info/:rollNo", editStdDetails);
+router.patch("/database/:rollNo", editStdDetails);
 // Add Student Details
-router.post("/database/student-info/:rollNo", addStdDetails);
+router.post("/database/:rollNo", addStdDetails);
 // Deleting Student Details 
-router.delete("/database/student-info/:rollNo", deleteStdDetails);
+router.delete("/database/:rollNo", deleteStdDetails);
 
 
 // Registering all the Manage Users routes
