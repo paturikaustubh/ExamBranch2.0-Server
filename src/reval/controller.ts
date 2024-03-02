@@ -11,7 +11,7 @@ export async function revalSearch(req: Request, res: Response) {
     const rollNo: string = req.query.rollNo as string;
     const exMonth: number = parseInt(req.query.examMonth as string);
     const exYear: number = parseInt(req.query.examYear as string);
-    let subjects: Details = {};
+    let selectedSubjects: Details = {};
     if (isAnyUndefined(rollNo, exMonth, exYear)) {
         res.status(400).json({ error: responses.NotAllParamsGiven });
         return;
@@ -37,9 +37,9 @@ export async function revalSearch(req: Request, res: Response) {
         }
         subjDetails.forEach((subjDetails, index) => {
             const semCode = String.fromCharCode("A".charCodeAt(0) + index);
-            subjects[semCode] = subjDetails;
+            selectedSubjects[semCode] = subjDetails;
         });
-        res.json({subjects, printTableExist: (result.length > 0)});
+        res.json({selectedSubjects, printTableExist: (result.length > 0)});
     } catch (err) {
         logger.log("error", err);
         res.json({ error: responses.ErrorWhileDBRequest });
@@ -50,49 +50,49 @@ export async function revalSearch(req: Request, res: Response) {
 // Common function for Paid and Register
 
 async function revalProcess(req: Request, reg?: string) {
-  const { body, params } = req;
-  const { rollNo } = params;
-  const { username, selectedSubjects } = body;
-  const details = [
-    selectedSubjects.A,
-    selectedSubjects.B,
-    selectedSubjects.C,
-    selectedSubjects.D,
-    selectedSubjects.E,
-    selectedSubjects.F,
-    selectedSubjects.G,
-    selectedSubjects.H,
-  ];
-  let year: number = 1,
-    sem: number = 1,
-    semCode: string = "A";
+    const { body, params } = req;
+    const { rollNo } = params;
+    const { username, selectedSubjects } = body;
+    const details = [
+        selectedSubjects.A,
+        selectedSubjects.B,
+        selectedSubjects.C,
+        selectedSubjects.D,
+        selectedSubjects.E,
+        selectedSubjects.F,
+        selectedSubjects.G,
+        selectedSubjects.H,
+    ];
+    let year: number = 1,
+        sem: number = 1,
+        semCode: string = "A";
 
-  if (isAnyUndefined(rollNo, username, ...details)) {
-    throw responses.NotAllParamsGiven;
-  }
-  const date = dayjs().format("DD-MMM-YY");
-  for (const subjects of details) {
-    for (let i = 0; i < subjects.subCodes.length; i++) {
-    try {
-        const [subCode, subName] = [subjects.subCodes[i], subjects.subNames[i]];
-        reg === undefined
-        ? await dbQuery(
-            `INSERT IGNORE INTO printReval (rollNo, subCode, subName, acYear, sem, user, regDate) VALUES ('${rollNo}', '${subCode}', '${subName}', ${year}, ${sem}, '${username}', '${date}')`
-            )
-        : await dbQuery(
-            `INSERT IGNORE INTO paidReEvaluation (rollNo, subCode, subName, acYear, sem, user, stat, regDate) VALUES ('${rollNo}', '${subCode}', '${subName}', '${year}', '${sem}', '${username}', '${
-                reg === semCode ? "R" : ""
-            }', '${date}')`
-            );
-    } catch (err) {
-        logger.log("error", err);
-        throw responses.ErrorWhileDBRequestWithDone;
+    if (isAnyUndefined(rollNo, username, ...details)) {
+        throw responses.NotAllParamsGiven;
     }
+    const date = dayjs().format("DD-MMM-YY");
+    for (const subjects of details) {
+        for (let i = 0; i < subjects.subCodes.length; i++) {
+            try {
+                const [subCode, subName] = [subjects.subCodes[i], subjects.subNames[i]];
+                reg === undefined
+                ? await dbQuery(
+                    `INSERT IGNORE INTO printReval (rollNo, subCode, subName, acYear, sem, user, regDate) VALUES ('${rollNo}', '${subCode}', '${subName}', ${year}, ${sem}, '${username}', '${date}')`
+                    )
+                : await dbQuery(
+                    `INSERT IGNORE INTO paidReEvaluation (rollNo, subCode, subName, acYear, sem, user, stat, regDate) VALUES ('${rollNo}', '${subCode}', '${subName}', '${year}', '${sem}', '${username}', '${
+                        reg === semCode ? "R" : ""
+                    }', '${date}')`
+                    );
+            } catch (err) {
+                logger.log("error", err);
+                throw responses.ErrorWhileDBRequestWithDone;
+            }
+        }
+        sem = sem === 1 ? 2 : 1;
+        year = sem === 1 ? ++year : year;
+        semCode = String.fromCharCode(semCode.charCodeAt(0) + 1);
     }
-    sem = sem === 1 ? 2 : 1;
-    year = sem === 1 ? ++year : year;
-    semCode = String.fromCharCode(semCode.charCodeAt(0) + 1);
-  }
 }
 
 // Inserting std into printReval Table
