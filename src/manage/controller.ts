@@ -92,7 +92,7 @@ export async function addStdDetails(req: Request, res: Response) {
             return res.json({ error: "Invalid subCode given" });
         subName = subName[0].subName as string;
 
-        const query: string = (tableName === "studentInfo") ? `INSERT IGNORE INTO studentInfo (rollNo, subCode, subName, grade, acYear, sem, exYear, exMonth) VALUES ("${rollNo}", "${subCode}", "${subName}", "${req.body.grade}", ${acYear}, ${sem}, "${req.body.examYear}", "${req.body.examMonth}")` :
+        const query: string = (tableName === "studentInfo") ? `INSERT IGNORE INTO studentInfo (rollNo, subCode, subName, grade, acYear, sem, exYear, exMonth) VALUES ("${rollNo}", "${subCode}", "${subName}", "${req.body.grade}", ${acYear}, ${sem}, "${req.body.exYear}", "${req.body.exMonth}")` :
             `INSERT IGNORE INTO ${tableName} (rollNo, subCode, subName, acYear, sem, regDate) VALUES ('${rollNo}', '${subCode}', '${subName}', ${acYear}, ${sem}, '${date}')`;
         await dbQuery(query);
         return res.json({ done: true });
