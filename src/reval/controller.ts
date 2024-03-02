@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 import * as logger from "../services/logger";
 import dbQuery from "../services/db";
-import { Details } from "../interfaces/reval";
+import { Details, RevalRow } from "../interfaces/reval";
 import dayjs from "dayjs";
 import { isAnyUndefined, responses } from "../services/common";
 
