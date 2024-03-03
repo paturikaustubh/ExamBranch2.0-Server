@@ -4,6 +4,7 @@ import dbQuery from "../services/db";
 import { isAnyUndefined, responses } from "../services/common";
 import {
   Details,
+  ExamSearchSubjectsProps,
   PrintSupple,
   StudentInfo,
   SubjectDetails,
@@ -68,15 +69,17 @@ export async function suppleSearch(req: Request, res: Response) {
 async function insert(req: Request, table: boolean) {
   const rollNo: string = req.params.rollNo;
   const username: string = req.body.username;
-  let list: any = [
-    req.body.A.subCodes,
-    req.body.B.subCodes,
-    req.body.C.subCodes,
-    req.body.D.subCodes,
-    req.body.E.subCodes,
-    req.body.F.subCodes,
-    req.body.G.subCodes,
-    req.body.H.subCodes,
+  const { selectedSubjects }: { selectedSubjects: ExamSearchSubjectsProps } =
+    req.body;
+  let list: string[][] = [
+    selectedSubjects.A.subCodes,
+    selectedSubjects.B.subCodes,
+    selectedSubjects.C.subCodes,
+    selectedSubjects.D.subCodes,
+    selectedSubjects.E.subCodes,
+    selectedSubjects.F.subCodes,
+    selectedSubjects.G.subCodes,
+    selectedSubjects.H.subCodes,
   ];
   if (isAnyUndefined(rollNo, username, ...list)) {
     throw responses.NotAllParamsGiven;
