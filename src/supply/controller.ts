@@ -24,13 +24,13 @@ export async function suppleSearch(req: Request, res: Response) {
 
   try {
     let printSuppleTable = (await dbQuery(
-      `select subName from printSupple where rollNo = '${rollNo}'`
+      `select subName from printSupply where rollNo = '${rollNo}'`
     )) as PrintSupple[];
     // Checking whether the std is already in the print table for registration otherwise fetching std details from the studentInfo table which are not paid
     let query =
       printSuppleTable.length > 0
-        ? `select subCode, subName from printSupple where rollNo = ? and acYear = ? and sem = ?`
-        : `select t.subCode,t.subName from studentInfo t LEFT JOIN paidSupple p ON t.subCode=p.subCode and t.rollNo=p.rollNo where t.rollNo=? and t.grade='F' and t.acYear=? and t.sem=? and p.subCode is null and p.rollNo is null`;
+        ? `select subCode, subName from printSupply where rollNo = ? and acYear = ? and sem = ?`
+        : `select t.subCode,t.subName from studentInfo t LEFT JOIN paidSupply p ON t.subCode=p.subCode and t.rollNo=p.rollNo where t.rollNo=? and t.grade='F' and t.acYear=? and t.sem=? and p.subCode is null and p.rollNo is null`;
 
     for (let i = 0; i < 8; i++) {
       sem = sem == 1 ? 2 : 1;
@@ -65,7 +65,7 @@ export async function suppleSearch(req: Request, res: Response) {
   }
 }
 
-//insertion function into printSupple and paidSupple
+//insertion function into printSupply and paidSupply
 async function insert(req: Request, table: boolean) {
   const rollNo: string = req.params.rollNo;
   const username: string = req.body.username;
@@ -87,8 +87,8 @@ async function insert(req: Request, table: boolean) {
   let semChar: string = "A",
     year: number = 1,
     sem: number = 1;
-  //if table is true then insertion is performed into paidSupple else printSupple
-  let tableName: string = table ? "paidSupple" : "printSupple";
+  //if table is true then insertion is performed into paidSupply else printSupply
+  let tableName: string = table ? "paidSupply" : "printSupply";
   for (const semSubCodes of list) {
     for (const subCode of semSubCodes) {
       console.log(semSubCodes, subCode);
@@ -112,7 +112,7 @@ async function insert(req: Request, table: boolean) {
   }
 }
 
-//For Inserting values into printSupple
+//For Inserting values into printSupply
 export async function printSupple(req: Request, res: Response) {
   try {
     await insert(req, false);
@@ -123,13 +123,13 @@ export async function printSupple(req: Request, res: Response) {
   }
 }
 
-//For Inserting values into paidSupple and delete those entries in printsupple
+//For Inserting values into paidSupply and delete those entries in printsupple
 
 export async function paidSupple(req: Request, res: Response) {
   try {
     await insert(req, true);
     await dbQuery(
-      `delete from printSupple where rollNo = "${req.params.rollNo}"`
+      `delete from printSupply where rollNo = "${req.params.rollNo}"`
     );
     res.send({ done: true });
   } catch (err) {
