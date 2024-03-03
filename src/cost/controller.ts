@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { Fines } from "../interfaces/cost";
 import { responses } from "../services/common";
 
-//To get costs for required case like  supply only
+//To get costs for required case like  supple only
 export async function getCost(req: Request, res: Response) {
   const { module } = req.query;
   try {
@@ -20,7 +20,7 @@ export async function getCost(req: Request, res: Response) {
       const json = JSON.stringify(result[0]);
       res.send(json);
     } else if (module == "supple") {
-      //if it is for supply purpose
+      //if it is for supple purpose
       const currentDate: dayjs.Dayjs = dayjs();
       let costs: any = await dbQuery(`select sbc,sac,sfc from costs`);
       let fines: Fines = {};
@@ -62,7 +62,7 @@ export async function getCost(req: Request, res: Response) {
     res.status(500).json({ error: responses.ErrorWhileReadingOrProcessing });
   }
 }
-//to update cost for supply,revaluation and CBT
+//to update cost for supple,revaluation and CBT
 export async function updateCost(req: Request, res: Response) {
   try {
     await dbQuery(`UPDATE costs set sbc=${req.body.sbc} ,sac=${req.body.sac},sfc=${req.body.sfc}
@@ -74,7 +74,7 @@ export async function updateCost(req: Request, res: Response) {
   }
   res.send({ done: true });
 }
-//To update fines for supply
+//To update fines for supple
 export async function updateFine(req: Request, res: Response) {
   try {
     await dbQuery(`REPLACE INTO fines VALUES ('${req.body.semChar}',${req.body.fine1},${req.body.fine2},${req.body.fine3}

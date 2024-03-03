@@ -11,11 +11,13 @@ export async function revalSearch(req: Request, res: Response) {
   const rollNo: string = req.query.rollNo as string;
   const exMonth: number = parseInt(req.query.examMonth as string);
   const exYear: number = parseInt(req.query.examYear as string);
-  let selectedSubjects: Details = {};
+  let subjects: Details = {};
+
   if (isAnyUndefined(rollNo, exMonth, exYear)) {
     res.status(400).json({ error: responses.NotAllParamsGiven });
     return;
   }
+
   let subjDetails: { subCodes: string[]; subNames: string[] }[] = [];
   try {
     const result = (await dbQuery(
@@ -46,9 +48,9 @@ export async function revalSearch(req: Request, res: Response) {
     }
     subjDetails.forEach((subjDetails, index) => {
       const semCode = String.fromCharCode("A".charCodeAt(0) + index);
-      selectedSubjects[semCode] = subjDetails;
+      subjects[semCode] = subjDetails;
     });
-    res.json({ selectedSubjects, printTableExist: result.length > 0 });
+    res.json({ subjects, printTableExist: result.length > 0 });
   } catch (err) {
     logger.log("error", err);
     res.json({ error: responses.ErrorWhileDBRequest });
