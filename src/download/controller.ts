@@ -1,12 +1,21 @@
-import { Request, Response, query } from "express";
+import { Request, Response } from "express";
 import path from "path";
-import dbQuery, { dbQueryWithFields } from "../services/db";
+import { dbQueryWithFields } from "../services/db";
 import * as logger from "../services/logger";
 import * as xlsx from "xlsx";
 import * as fs from "fs";
 import { isAnyUndefined, responses } from "../services/common";
 import { FieldInfo } from "mysql";
 import dayjs from "dayjs";
+
+type tableNames =
+  | "paidsupple"
+  | "printsupple"
+  | "paidreval"
+  | "printreval"
+  | "paidcbt"
+  | "printcbt"
+  | "studentinfo";
 
 export function convertToXLSX(
   result: any,
@@ -52,7 +61,6 @@ async function downloadTable(
 
   try {
     [result, fields] = (await dbQueryWithFields(query)) as [any, FieldInfo[]];
-    console.log(fields);
   } catch (err) {
     return res.status(500).json(responses.ErrorWhileDBRequestWithDone);
   }
@@ -80,29 +88,20 @@ async function downloadTable(
   });
 }
 
-type tableNames =
-  | "paidsupple"
-  | "printsupple"
-  | "paidreevaluation"
-  | "printreval"
-  | "paidcbt"
-  | "printcbt"
-  | "studentinfo";
-
 const tables: {
   [key in tableNames]: { query: string; ordering: string; fileName: string };
 } = {
   paidsupple: {
-    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" from paidsupple `,
+    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" from paidsupply `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
     fileName: "Registred Supple",
   },
   printsupple: {
-    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printsupple `,
+    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printsupply `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
-    fileName: "Un-Registred Supple",
+    fileName: "Unregistered Supple",
   },
-  paidreevaluation: {
+  paidreval: {
     query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM paidreevaluation `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
     fileName: "Registred Reval",
@@ -110,7 +109,7 @@ const tables: {
   printreval: {
     query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt" FROM printreval `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
-    fileName: "Un-Registred Reval",
+    fileName: "Unregistered Reval",
   },
   paidcbt: {
     query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM paidcbt `,
@@ -120,7 +119,7 @@ const tables: {
   printcbt: {
     query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM printCBT `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
-    fileName: "Un-Registred CBT",
+    fileName: "Unregistred CBT",
   },
   studentinfo: {
     query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", grade AS "Grade", acYear AS "Year", sem AS "Semester", exYear AS "Exam Year", exMonth AS "Exam Month" FROM studentInfo `,
@@ -129,16 +128,18 @@ const tables: {
   },
 };
 export async function downloadHandler(
-  { params, query: { sem, acYear } }: Request,
+  {
+    query: { sem, acYear, tableName },
+  }: { query: { sem: string; acYear: string; tableName: tableNames } },
   res: Response
 ) {
-  const tableName = params.tableName as tableNames;
+  console.log(sem, acYear, tableName);
   if (isAnyUndefined(tableName, sem, acYear)) {
     return res.status(400).json(responses.NotAllParamsGiven);
   }
 
   let condition =
-    parseInt(acYear as string) !== 0 && parseInt(sem as string) !== 0
+    parseInt(acYear) !== 0 && parseInt(sem) !== 0
       ? ` WHERE acYear=${acYear} AND sem=${sem} `
       : "";
   if (tableName in tables) {
