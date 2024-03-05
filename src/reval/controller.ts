@@ -9,8 +9,8 @@ import { isAnyUndefined, responses } from "../services/common";
 
 export async function revalSearch(req: Request, res: Response) {
   const rollNo: string = req.query.rollNo as string;
-  const exMonth: number = parseInt(req.query.examMonth as string);
-  const exYear: number = parseInt(req.query.examYear as string);
+  const exMonth: number = parseInt(req.query.exMonth as string);
+  const exYear: number = parseInt(req.query.exYear as string);
   let subjects: Details = {};
 
   if (isAnyUndefined(rollNo, exMonth, exYear)) {
@@ -62,16 +62,16 @@ export async function revalSearch(req: Request, res: Response) {
 async function revalProcess(req: Request, reg?: string) {
   const { body, params } = req;
   const { rollNo } = params;
-  const { username, selectedSubjects } = body;
+  const { username, subjects } = body;
   const details = [
-    selectedSubjects.A,
-    selectedSubjects.B,
-    selectedSubjects.C,
-    selectedSubjects.D,
-    selectedSubjects.E,
-    selectedSubjects.F,
-    selectedSubjects.G,
-    selectedSubjects.H,
+    subjects.A,
+    subjects.B,
+    subjects.C,
+    subjects.D,
+    subjects.E,
+    subjects.F,
+    subjects.G,
+    subjects.H,
   ];
   let year: number = 1,
     sem: number = 1,
