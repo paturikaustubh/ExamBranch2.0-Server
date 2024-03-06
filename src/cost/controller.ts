@@ -59,7 +59,7 @@ export async function getCost(req: Request, res: Response) {
     }
   } catch (err) {
     logger.log("error", err);
-    res.status(500).json({ error: responses.ErrorWhileReadingOrProcessing });
+    res.status(500).json(responses.ErrorWhileReadingOrProcessing);
   }
 }
 //to update cost for supple,revaluation and CBT
@@ -69,7 +69,7 @@ export async function updateCost(req: Request, res: Response) {
         ,rev=${req.body.rev},cbc=${req.body.cbc} ,cac=${req.body.cac},cfc=${req.body.cfc} where 1`);
   } catch (err) {
     logger.log("error", err);
-    res.status(500).json({ error: responses.ErrorWhileDBRequestWithUpdated });
+    res.status(500).json(responses.ErrorWhileDBRequest);
     return;
   }
   res.send({ done: true });
@@ -81,7 +81,7 @@ export async function updateFine(req: Request, res: Response) {
         ,'${req.body.fine1date}','${req.body.fine2date}' ,'${req.body.fine3date}','${req.body.nofinedate}')`);
   } catch (err) {
     logger.log("error", err);
-    res.status(500).json({ error: responses.ErrorWhileDBRequestWithUpdated });
+    res.status(500).json(responses.ErrorWhileDBRequest);
     return;
   }
   res.send({ done: true });

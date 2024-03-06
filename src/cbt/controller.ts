@@ -23,7 +23,6 @@ export async function searchCBT(req: Request, res: Response) {
   }
   const subCodes: string[] = [];
   const subNames: string[] = [];
-  const mapper: { [key: string]: string } = {};
   try {
     let rowsInStudentInfo = (await dbQuery(
       `SELECT * FROM studentinfo WHERE rollNo = '${rollNo}' limit 1`
@@ -47,9 +46,8 @@ export async function searchCBT(req: Request, res: Response) {
     cbtSubjectsTable.forEach((e) => {
       subCodes.push(e.subCode);
       subNames.push(e.subName);
-      mapper[e.subCode] = e.subName;
     });
-    res.send({ subCodes, subNames, mapper, printTableExist });
+    res.send({ subCodes, subNames, printTableExist });
   } catch (err) {
     logger.log("error", err);
     res.status(500).json(responses.ErrorWhileDBRequest);
@@ -59,9 +57,9 @@ export async function searchCBT(req: Request, res: Response) {
 async function processCBT(req: Request, res: Response, tableName: string) {
   const acYear: number = req.body.acYear;
   const sem: number = req.body.sem;
-  const subCodes: string[] = req.body.subCodes;
+  const { subCodes, subNames }: { subCodes: string[]; subNames: string[] } =
+    req.body.subjects;
   const rollNo: string = req.params.rollNo;
-  const subNames: string[] = req.body.subNames;
   const branch: string = req.body.branch;
   const username: string = req.body.username;
 
@@ -88,7 +86,7 @@ async function processCBT(req: Request, res: Response, tableName: string) {
     res.json({ done: true });
   } catch (err) {
     logger.log("error", err);
-    res.status(500).json(responses.ErrorWhileDBRequestWithDone);
+    res.status(500).json(responses.ErrorWhileDBRequest);
   }
 }
 
@@ -121,11 +119,30 @@ export async function deleteFromCBT(req: Request, res: Response) {
     await dbQuery(query);
   } catch (err) {
     logger.log("error", err);
-    res
-      .status(500)
-      .json({
-        error:
-          "Error occurred while processing the request. Check server logs for more information.",
-      });
+    res.status(500).json({
+      error:
+        "Error occurred while processing the request. Check server logs for more information.",
+    });
+  }
+}
+
+export async function distBranchs(req: Request, res: Response) {
+  const branch: string[] = [];
+  const sem: string[] = [];
+  const regYear: string[] = [];
+  try {
+    let result: any = await dbQuery(
+      `SELECT DISTINCT branch, sem, regYear FROM cbtsubjects`
+    );
+
+    result.forEach((e: any) => {
+      branch.push(e.branch);
+      sem.push(e.sem);
+      regYear.push(e.regYear);
+    });
+    res.send({ branch, sem, regYear });
+  } catch (err) {
+    logger.log("error", err);
+    res.status(500).json(responses.ErrorWhileDBRequest);
   }
 }

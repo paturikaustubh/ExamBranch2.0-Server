@@ -29,7 +29,7 @@ export async function getStdDetails(req: Request, res: Response) {
     res.json({ stdData });
   } catch (err) {
     logger.log("error", err);
-    return res.json({ error: responses.ErrorWhileDBRequestWithUpdated });
+    return res.json({ error: responses.ErrorWhileDBRequest });
   }
 }
 
@@ -61,7 +61,7 @@ export async function editStdDetails(req: Request, res: Response) {
     return res.json({ updated: true });
   } catch (err) {
     logger.log("error", err);
-    return res.json({ error: responses.ErrorWhileDBRequestWithUpdated });
+    return res.json({ error: responses.ErrorWhileDBRequest });
   }
 }
 
@@ -93,16 +93,16 @@ export async function addStdDetails(req: Request, res: Response) {
     return res.json({ done: true });
   } catch (err) {
     logger.log("error", err);
-    return res.json({ done: responses.ErrorWhileDBRequestWithDone });
+    return res.json({ done: responses.ErrorWhileDBRequest });
   }
 }
 
 // Deleting Student Details
 
 export async function deleteStdDetails(req: Request, res: Response) {
-  let rollNo: string = req.params.rollNo;
-  let subCode: string = req.body.subCode;
-  let tableName: string = req.body.tableName;
+  let rollNo: string = req.query.rollNo as string;
+  let subCode: string = req.query.subCode as string;
+  let tableName: string = req.query.tableName as string;
   if (isAnyUndefined(rollNo, tableName)) {
     return res.status(400).json(responses.NotAllParamsGiven);
   }
@@ -115,7 +115,7 @@ export async function deleteStdDetails(req: Request, res: Response) {
     res.json({ deleted: true });
   } catch (err) {
     logger.log("error", err);
-    return res.json({ error: responses.ErrorWhileDBRequestWithDeleted });
+    return res.json({ error: responses.ErrorWhileDBRequest });
   }
 }
 
@@ -134,7 +134,7 @@ export async function addUser(req: Request, res: Response) {
     res.json({ done: true });
   } catch (err) {
     logger.log("error", err);
-    return res.json({ error: responses.ErrorWhileDBRequestWithDone });
+    return res.json(responses.ErrorWhileDBRequest);
   }
 }
 
@@ -149,7 +149,7 @@ export async function deleteUser(req: Request, res: Response) {
     res.json({ deleted: true });
   } catch (err) {
     logger.log("error", err);
-    return res.json({ error: responses.ErrorWhileDBRequestWithDeleted });
+    return res.json(responses.ErrorWhileDBRequest);
   }
 }
 
@@ -183,6 +183,6 @@ export async function updateUser(req: Request, res: Response) {
     }
   } catch (err) {
     logger.log("error", err);
-    return res.json({ error: responses.ErrorWhileDBRequestWithUpdated });
+    return res.json(responses.ErrorWhileDBRequest);
   }
 }

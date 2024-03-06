@@ -59,10 +59,12 @@ export async function revalSearch(req: Request, res: Response) {
 
 // Common function for Paid and Register
 
-async function revalProcess(req: Request, reg?: string) {
+async function revalProcess(req: Request) {
   const { body, params } = req;
   const { rollNo } = params;
-  const { username, subjects } = body;
+  const {
+    details: { username, subjects, regular: reg, grandTotal },
+  } = body;
   const details = [
     subjects.A,
     subjects.B,
@@ -96,7 +98,7 @@ async function revalProcess(req: Request, reg?: string) {
             );
       } catch (err) {
         logger.log("error", err);
-        throw responses.ErrorWhileDBRequestWithDone;
+        throw responses.ErrorWhileDBRequest;
       }
     }
     sem = sem === 1 ? 2 : 1;
@@ -112,7 +114,7 @@ export async function printReval(req: Request, res: Response) {
     await revalProcess(req);
   } catch (err) {
     logger.log("error", err);
-    return res.json({ error: responses.ErrorWhileDBRequestWithDone });
+    return res.json(responses.ErrorWhileDBRequest);
   }
   return res.json({ done: true });
 }
@@ -121,16 +123,15 @@ export async function printReval(req: Request, res: Response) {
 
 export async function registerReval(req: Request, res: Response) {
   const rollNo = req.params.rollNo;
-  const { regular, amount } = req.body;
-  if (isAnyUndefined(rollNo, regular)) {
+  if (isAnyUndefined(rollNo)) {
     return res.status(400).json(responses.NotAllParamsGiven);
   }
   try {
-    await revalProcess(req, regular);
+    await revalProcess(req);
     await dbQuery(`DELETE FROM printReval WHERE rollNo = '${rollNo}'`);
   } catch (err) {
     logger.log("error", err);
-    return res.json({ error: responses.ErrorWhileDBRequestWithDone });
+    return res.json(responses.ErrorWhileDBRequest);
   }
   return res.json({ done: true });
 }

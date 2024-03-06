@@ -14,7 +14,7 @@ import {
 export async function suppleSearch(req: Request, res: Response) {
   const rollNo = req.query.rollNo;
   if (isAnyUndefined(rollNo)) {
-    res.status(400).json({ error: responses.NotAllParamsGiven });
+    res.status(400).json(responses.NotAllParamsGiven);
     return;
   }
   let year: number = 1,
@@ -61,25 +61,24 @@ export async function suppleSearch(req: Request, res: Response) {
     return;
   } catch (err) {
     logger.log("error", err);
-    res.json({ error: responses.ErrorWhileDBRequest });
+    res.json(responses.ErrorWhileDBRequest);
   }
 }
 
 //insertion function into printSupply and paidSupply
-async function insert(req: Request, table: boolean) {
+async function insert(req: Request, isPaidTable: boolean) {
   const rollNo: string = req.params.rollNo;
   const username: string = req.body.username;
-  const { selectedSubjects }: { selectedSubjects: ExamSearchSubjectsProps } =
-    req.body;
+  const { subjects }: { subjects: ExamSearchSubjectsProps } = req.body;
   let list: string[][] = [
-    selectedSubjects.A.subCodes,
-    selectedSubjects.B.subCodes,
-    selectedSubjects.C.subCodes,
-    selectedSubjects.D.subCodes,
-    selectedSubjects.E.subCodes,
-    selectedSubjects.F.subCodes,
-    selectedSubjects.G.subCodes,
-    selectedSubjects.H.subCodes,
+    subjects.A.subCodes,
+    subjects.B.subCodes,
+    subjects.C.subCodes,
+    subjects.D.subCodes,
+    subjects.E.subCodes,
+    subjects.F.subCodes,
+    subjects.G.subCodes,
+    subjects.H.subCodes,
   ];
   if (isAnyUndefined(rollNo, username, ...list)) {
     throw responses.NotAllParamsGiven;
@@ -88,10 +87,9 @@ async function insert(req: Request, table: boolean) {
     year: number = 1,
     sem: number = 1;
   //if table is true then insertion is performed into paidSupply else printSupply
-  let tableName: string = table ? "paidSupply" : "printSupply";
+  let tableName: string = isPaidTable ? "paidSupply" : "printSupply";
   for (const semSubCodes of list) {
     for (const subCode of semSubCodes) {
-      console.log(semSubCodes, subCode);
       try {
         let result: any = await dbQuery(
           `select distinct studentInfo.subName from studentInfo where studentInfo.subCode="${subCode}"`
@@ -103,7 +101,7 @@ async function insert(req: Request, table: boolean) {
         }
       } catch (err) {
         logger.log("error", err);
-        throw responses.ErrorWhileDBRequestWithDone;
+        throw responses.ErrorWhileDBRequest;
       }
     }
     semChar = String.fromCharCode(semChar.charCodeAt(0) + 1);
@@ -119,7 +117,7 @@ export async function printSupple(req: Request, res: Response) {
     res.send({ done: true });
   } catch (err) {
     logger.log("error", err);
-    res.status(500).json({ error: responses.ErrorWhileDBRequestWithDone });
+    res.status(500).json(responses.ErrorWhileDBRequest);
   }
 }
 
@@ -134,6 +132,6 @@ export async function paidSupple(req: Request, res: Response) {
     res.send({ done: true });
   } catch (err) {
     logger.log("error", err);
-    return res.json({ error: responses.ErrorWhileDBRequestWithDone });
+    return res.json(responses.ErrorWhileDBRequest);
   }
 }

@@ -4,32 +4,16 @@ export function isAnyUndefined(...variables: any[]): boolean {
 
 export const responses = {
   NotAllParamsGiven: {
-    done: false,
-    error: "Not all params given. Ask server admin for help",
+    message: "Not all params given",
   },
   ErrorWhileDBRequest: {
-    error:
-      "Error occured while db request. Check server logs for more information",
-  },
-  ErrorWhileDBRequestWithDone: {
-    done: false,
-    error:
-      "Error occured while db request. Check server logs for more information",
-  },
-  ErrorWhileDBRequestWithDeleted: {
-    deleted: false,
-    error:
-      "Error occured while db request. Check server logs for more information",
-  },
-  ErrorWhileDBRequestWithUpdated: {
-    updated: false,
-    error:
-      "Error occured while db request. Check server logs for more information",
+    error: {
+      message: "Couldn't complete the request. Check server console.",
+    },
   },
   ErrorWhileReadingOrProcessing: {
     done: false,
-    error:
-      "Error reading or processing file from the file check Server log for more info",
+    error: "Invalid file format.",
   },
   UnsupportedFileExt: {
     done: false,
