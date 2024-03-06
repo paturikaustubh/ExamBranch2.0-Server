@@ -93,7 +93,7 @@ async function revalProcess(req: Request, isPaidTable: boolean) {
                 );
         } catch (err) {
             logger.log("error", err);
-            throw responses.ErrorWhileDBRequestWithDone;
+            throw responses.ErrorWhileDBRequest;
         }
         }
         sem = sem === 1 ? 2 : 1;
@@ -109,7 +109,7 @@ export async function printReval(req: Request, res: Response) {
         await revalProcess(req, false);
     } catch (err) {
         logger.log("error", err);
-        return res.json(responses.ErrorWhileDBRequestWithDone);
+        return res.json(responses.ErrorWhileDBRequest);
     }
     return res.json({ done: true });
 }
@@ -123,7 +123,7 @@ export async function registerReval(req: Request, res: Response) {
         await dbQuery(`DELETE FROM printReval WHERE rollNo = '${rollNo}'`);
     } catch (err) {
         logger.log("error", err);
-        return res.json(responses.ErrorWhileDBRequestWithDone);
+        return res.json(responses.ErrorWhileDBRequest);
     }
     return res.json({ done: true });
 }

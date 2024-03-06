@@ -81,7 +81,7 @@ export async function editStdDetails(req: Request, res: Response) {
         await dbQuery(query);
     } catch(err) {
         logger.log("error", err);
-        return res.json(responses.ErrorWhileDBRequestWithUpdated);
+        return res.json(responses.ErrorWhileDBRequest);
     }
     return res.json({ updated: true });
 }
@@ -111,7 +111,7 @@ export async function addStdDetails(req: Request, res: Response) {
         return res.json({ done: true });
     } catch (err) {
         logger.log("error", err);
-        return res.json( responses.ErrorWhileDBRequestWithDone);
+        return res.json( responses.ErrorWhileDBRequest);
         
     }
 }
@@ -130,7 +130,7 @@ export async function deleteStdDetails(req: Request, res: Response) {
         res.json({ deleted: true });
     } catch (err) {
         logger.log("error", err);
-        return res.json(responses.ErrorWhileDBRequestWithDeleted);
+        return res.json(responses.ErrorWhileDBRequest);
     }
 }
 
