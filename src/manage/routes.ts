@@ -21,7 +21,7 @@ router.patch("/database/:rollNo", editStdDetails);
 // Add Student Details
 router.post("/database/:rollNo", addStdDetails);
 // Deleting Student Details
-router.delete("/database/", deleteStdDetails);
+router.delete("/database/:rollNo", deleteStdDetails);
 
 // Registering all the Manage Users routes
 

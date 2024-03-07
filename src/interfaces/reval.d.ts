@@ -5,8 +5,14 @@ export interface Details {
     };
 }
 
+export interface SubjectDetails {
+    subCodes: string[];
+    subNames: string[];
+  }
 
 export interface RevalRow {
     subCode: string;
     subName:string;
 }
+
+
