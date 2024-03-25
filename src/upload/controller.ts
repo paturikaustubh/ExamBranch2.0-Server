@@ -62,7 +62,7 @@ async function uploadFromLoc(location: string, tableName: string) {
       return responses.ErrorWhileDBRequest;
     }
   } catch (err) {
-    logger.log("error", "Error reading CSV file:", err);
+    logger.log("error", "Error reading file:", err);
     return responses.ErrorWhileReadingOrProcessing;
   }
   return responses.DoneMSG;
@@ -119,20 +119,24 @@ async function uploadAllFilesInDir(
 }
 
 export async function restoreStudentInfo({ body }: Request, res: Response) {
-  const ext: string = body.ext || ".xlsx";
   const loc = path.join(body.loc.trim());
 
-  if (isAnyUndefined(loc, ext))
+  if (isAnyUndefined(loc))
     return res.status(400).json(responses.NotAllParamsGiven);
 
-  if (supportedExtensions.includes(ext)) {
-    logger.log("info", "Restoring studentinfo started");
+    
+    for(const ext of supportedExtensions){
+        let r = await uploadFromLoc(path.join(loc, `backup${ext}`), "studentinfo")
+        if(!('error' in r)) {
+            logger.log("info", "Restoring studentinfo Done");
+            return res.json(responses.DoneMSG)
+        }
+    }
+  
     res.json(
-      await uploadFromLoc(path.join(loc, `backup${ext}`), "studentinfo")
+        responses.ErrorWhileReadingOrProcessing
     );
-  } else {
-    res.status(400).json(responses.UnsupportedFileExt);
-  }
+  
 }
 
 export async function uploadHandler(
