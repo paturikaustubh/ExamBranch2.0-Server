@@ -29,6 +29,6 @@ export const responses = {
     done: true,
   },
   InvalidParameterValue: {
-    error: "Invalid parameter value",
+    error: { message: "Invalid value" },
   },
 };

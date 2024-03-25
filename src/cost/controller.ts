@@ -29,10 +29,9 @@ export async function getCost(req: Request, res: Response) {
         let dates: any = await dbQuery(
           `SELECT no_fine,fine_1Dt,fine_2Dt,fine_3Dt FROM fines WHERE semChar='${semChar}'`
         );
-        let noFine: dayjs.Dayjs = dayjs(dates[0]["no_fine"], "DD-MMM-YY");
-        let fine1Date: dayjs.Dayjs = dayjs(dates[0]["fine_1Dt"], "DD-MMM-YY");
-        let fine2Date: dayjs.Dayjs = dayjs(dates[0]["fine_2Dt"], "DD-MMM-YY");
-        let fine3Date: dayjs.Dayjs = dayjs(dates[0]["fine_3Dt"], "DD-MMM-YY");
+        let noFine = dayjs(dates[0]["no_fine"], "DD-MMM-YY");
+        let fine1Date = dayjs(dates[0]["fine_1Dt"], "DD-MMM-YY");
+        let fine2Date = dayjs(dates[0]["fine_2Dt"], "DD-MMM-YY");
         if (currentDate <= noFine) {
           fines[semChar] = 0;
         } else if (currentDate <= fine1Date) {

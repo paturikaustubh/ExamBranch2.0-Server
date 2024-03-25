@@ -5,6 +5,6 @@ import { isUserValid } from "./controller";
 const router: Router = Router();
 
 // Registering all the login module routes
-router.get("", isUserValid);
+router.post("", isUserValid);
 
 export default router;

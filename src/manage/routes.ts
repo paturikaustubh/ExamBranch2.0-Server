@@ -8,6 +8,8 @@ import {
   addUser,
   deleteUser,
   updateUser,
+  getSubName,
+  getUsers,
 } from "./controller";
 
 const router: Router = Router();
@@ -21,10 +23,13 @@ router.patch("/database/:rollNo", editStdDetails);
 // Add Student Details
 router.post("/database/:rollNo", addStdDetails);
 // Deleting Student Details
-router.delete("/database/:rollNo", deleteStdDetails);
+router.delete("/database", deleteStdDetails);
+router.get("/database/sub-name/:subCode", getSubName);
 
 // Registering all the Manage Users routes
 
+// Getting Users
+router.get("/users", getUsers);
 // Adding a User
 router.post("/user", addUser);
 // Deleting a User
