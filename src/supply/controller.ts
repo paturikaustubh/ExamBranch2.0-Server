@@ -7,7 +7,7 @@ import { Details, PrintSupply, StudentInfo, SubjectDetails } from "../interfaces
 
 //Supply search
 export async function supplySearch(req: Request, res: Response) {
-    const rollNo = req.query.rollNo;
+    const rollNo = req.query.rollNo as string;
     if (isAnyUndefined(rollNo)) {
         res.status(400).json({ error: responses.NotAllParamsGiven });
         return;

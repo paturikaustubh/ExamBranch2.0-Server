@@ -82,3 +82,16 @@ export async function updateFine(req: Request, res: Response) {
     }
     res.send({ done: true });
 }
+//to get fine details
+export async function getFines(req: Request, res: Response) {
+    try{
+        let result:any = await dbQuery(`select * from fines`) 
+        const json = JSON.stringify(result);
+        res.send(json)
+    }
+    catch(err){
+        logger.log("error",err)
+        res.status(500).json({ error: responses.ErrorWhileReadingOrProcessing });
+        return
+    }
+}
