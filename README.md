@@ -267,8 +267,6 @@ _Base Url_: `/upload`
 - **Request Format**:
   - _Headers_: `Cookie: Token=<auth-token>`
 
-
-
 ## Revaluation
 
 *Base URL*: `/reval`
@@ -412,7 +410,7 @@ _Base Url_: `/upload`
 
     ```json
     {
-       "selectedSubjects": {
+       "subjects": {
           "A": {
           "subCodes": string[],
           "subNames": string[]
@@ -457,7 +455,7 @@ _Base Url_: `/upload`
 
     ```json
     {
-       "selectedSubjects": {
+       "subjects": {
           "A": {
           "subCodes": [],
           "subNames": []
@@ -547,7 +545,7 @@ _Base Url_: `/upload`
 
     ```json
     {
-       "selectedSubjects": {
+       "subjects": {
           "A": {
           "subCodes": string[],
           "subNames": string[]
@@ -592,7 +590,7 @@ _Base Url_: `/upload`
 
     ```json
     {
-       "selectedSubjects": {
+       "subjects": {
           "A": {
           "subCodes": [],
           "subNames": []
@@ -668,6 +666,28 @@ _Base Url_: `/upload`
     }
     ```
 - **Authentication**: Required
+
+### Truncate Paid Revaluation (`DELETE /api/reval/paid`)
+
+- **Purpose**: To delete and truncate paidReEvaluation table.
+- **Request Format**:
+
+  - *Headers*: `Cookie: Token=<auth-token>`
+  - *Query Parameters*:
+    - `year`: 0 | 1 | 2 | 3 | 4
+    - `sem`: 0 | 1 | 2
+- **Response Format**:
+- - *Status Code*: 200 OK
+  - *Body*:
+
+    ```json
+    {
+    	"deleted": boolean,
+    	"error"?: string 
+    }
+    ```
+- **Authentication**: Required
+
 
 ## Manage Database
 
@@ -895,14 +915,16 @@ _Base Url_: `/upload`
 
     ```json
     {
-      "acYear": number,
-      "sem": number,
+      "details": {
+        "acYear": number,
+        "sem": number,
+        "subCode": string,
+        "oldSubCode": string,
+        "grade": string,
+        "exMonth": number,
+        "exYear": number
+      },
       "tableName": string,
-      "subCode": string,
-      "newSubCode": string,
-      "grade": string,
-      "exMonth": number,
-      "exYear": number
     }
     ```
 
@@ -910,14 +932,16 @@ _Base Url_: `/upload`
 
     ```json
     {
-      "acYear": 2,
-      "sem": 0,
-      "tableName": "studentInfo",
-      "subCode": "18CSE1234",
-      "newSubCode": "18CSE1296",
-      "grade": "A",
-      "exMonth": 5,
-      "exYear": 2024
+      "details": {
+        "acYear": 2,
+        "sem": 0,
+        "subCode": "18CSE1234",
+        "oldSubCode": "18CSE1296",
+        "grade": "A",
+        "exMonth": 5,
+        "exYear": 2024
+      },
+      "tableName": "studentInfo"
     }
     ```
 
@@ -925,13 +949,15 @@ _Base Url_: `/upload`
 
     ```json
     {
-      "acYear": number,
-      "sem": number,
-      "tableName": string,
-      "subCode": string,
-      "newSubCode": string,
+      "details": {
+        "acYear": number,
+        "sem": number,
+        "subCode": string,
+        "oldSubCode": string,
+        "stat": string
+      },
       "username": string,
-      "stat": string
+      "tableName": string
     }
     ```
 
@@ -939,13 +965,15 @@ _Base Url_: `/upload`
 
     ```json
     {
-      "acYear": 2,
-      "sem": 0,
-      "tableName": "paidSupply",
-      "subCode": "18CSE1234",
-      "newSubCode": "18CSE1296",
+      "details": {
+        "acYear": 2,
+        "sem": 1,
+        "subCode": "18CS44718",
+        "oldSubCode": "192903KLs",
+        "stat": "R"
+      },
       "username": "admin",
-      "stat": "R"
+      "tableName": "paidReval"
     }
     ```
 
@@ -953,11 +981,13 @@ _Base Url_: `/upload`
 
     ```json
     {
-      "acYear": number,
-      "sem": number,
-      "tableName": string,
-      "subCode": string,
-      "newSubCode": string,
+      "details": {
+        "acYear": number,
+        "sem": number,
+        "tableName": string,
+        "subCode": string,
+        "newSubCode": string,
+      },
       "username": string
     }
     ```
@@ -966,12 +996,14 @@ _Base Url_: `/upload`
 
     ```json
     {
-      "acYear": 2,
-      "sem": 0,
-      "tableName": "paidSupply",
-      "subCode": "18CSE1234",
-      "newSubCode": "18CSE1296",
-      "username": "admin"
+      "details": {
+        "acYear": 2,
+        "sem": 1,
+        "tableName": "paidSupply",
+        "subCode": "18CSE12O1",
+        "oldSubCode": "19CSE204S",
+      },
+      "username": string
     }
     ```
 
@@ -979,12 +1011,14 @@ _Base Url_: `/upload`
 
     ```json
     {
-      "acYear": number,
-      "sem": number,
-      "tableName": string,
-      "subCode": string,
-      "newSubCode": string,
-      "branch": string,
+      "details": {
+        "acYear": number,
+        "sem": number,
+        "tableName": string,
+        "subCode": string,
+        "oldSubCode": string,
+        "branch": string,
+      },
       "username": string
     }
     ```
@@ -993,15 +1027,15 @@ _Base Url_: `/upload`
 
     ```json
     {
-      "acYear": 2,
-      "sem": 0,
-      "tableName": "paidSupply",
-      "subCode": "18CSE1234",
-      "newSubCode": "18CSE1296",
-      "branch": "CSE",
-      "username": "admin
-
-    "
+      "details": {
+        "acYear": 3,
+        "sem": 2,
+        "tableName": "paidCBT",
+        "subCode": "19CSE5431",
+        "oldSubCode": "18CSE54D1",
+        "branch": "EEE",
+      },
+      "username": "admin"
     }
     ```
 - Response Format:
@@ -1030,13 +1064,15 @@ _Base Url_: `/upload`
 
     ```json
     {
-      "acYear": number,
-      "sem": number,
-      "tableName": string,
-      "subCode": string,
-      "grade": string,
-      "exMonth": number,
-      "exYear": number
+      "details": {
+        "acYear": number,
+        "sem": number,
+        "tableName": string,
+        "subCode": string,
+        "grade": string,
+        "exMonth": number,
+        "exYear": number
+      }
     }
     ```
 
@@ -1044,13 +1080,15 @@ _Base Url_: `/upload`
 
     ```json
     {
-      "acYear": 2,
-      "sem": 2,
-      "tableName": "studentinfo",
-      "subCode": "18CSE1234",
-      "grade": "A",
-      "exMonth": 5,
-      "exYear": 2024
+      "details": {
+        "acYear": 2,
+        "sem": 2,
+        "tableName": "studentinfo",
+        "subCode": "18CSE1234",
+        "grade": "A",
+        "exMonth": 5,
+        "exYear": 2024
+      }
     }
     ```
   - Response Format:
@@ -1065,56 +1103,31 @@ _Base Url_: `/upload`
       ```
   - Authentication: Required
 
-### Deleting Student Details (`DELETE manage/database/:rollNo`)
+### Deleting Student Details (`DELETE manage/database`)
 
 - Purpose: To delete student details in database
 - **Request Format**:
 
   - *Headers*: `Cookie: Token=<auth-token>`
-  - *Path Parameters*:
+  - *Query Parameters*:
+    -Paid Entries and Student Database :
 
     - `rollNo`: Student Roll Number
-  - *Body:*
-
     - `tableName`: 'paidSupply' | 'paidReEvaluation' | 'paidCBT'  | 'studentInfo'
 
-    ```json
+    -Print Entries:
+
+    - `rollNo`: Student Roll Number
+    - `tableName`: 'paidSupply' | 'paidReEvaluation' | 'paidCBT'  | 'studentInfo'
+    - `subCode`: string[]
+  - Response Format:
+
+    - *Status Code*: 200 OK
+    - Body:
+  - ```json
     {
-      "subCode": string[],
-      "tableName": string
+    	"deleted": boolean,
+    	"error"?: string 
     }
     ```
-    - Example:
-
-    ```json
-    {
-      "subCode": ["18CSE45E2", "18CSE45E2", "18CSE45G2"],
-      "tableName": "paidSupply"
-    }
-    ```
-    - `tableName`: printCBT | printSupply | printReval
-
-    ```json
-    {
-      "tableName": string
-    }
-    ```
-    - Example:
-
-    ```json
-    {
-      "rollNo": "19R11A05N8",
-      "tableName": "printcbt"
-    }
-    ```
-- Response Format:
-
-  - *Status Code*: 200 OK
-  - Body:
-- ```json
-  {
-  	"deleted": boolean,
-  	"error"?: string 
-  }
-  ```
-- Authentication: Required
+  - Authentication: Required
