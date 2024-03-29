@@ -146,12 +146,15 @@ _Base url_: `/cbt`
 
     ```ts
     {
+            "subjects": {
+                "subCodes": string[],
+    	    "subNames": string[]
+            },
     	"acYear": number,
     	"sem": number,
-    	"subCodes": string[],
-    	"subNames": string[],
     	"branch": string[],
-    	"username": string
+    	"username": string,
+            "grandTotal": number
     }
     ```
 
@@ -159,12 +162,15 @@ _Base url_: `/cbt`
 
     ```json
     {
+      "subjects": {
+        "subCodes": ["18CE4112", "18CE4113", "18CE41L1", "18CE41L2"],
+        "subNames": ["SWM", "MINIPRO", "SADLAB", "EELAB"],
+      }
       "acYear": 3,
       "sem": 2,
-      "subCodes": ["18CE4112", "18CE4113", "18CE41L1", "18CE41L2"],
-      "subNames": ["SWM", "MINIPRO", "SADLAB", "EELAB"],
       "branch": "CSE",
-      "username": "admin"
+      "username": "admin",
+      "grandTotal": 1200
     }
     ```
 - **Response Format**:
@@ -193,12 +199,15 @@ _Base url_: `/cbt`
 
     ```ts
     {
+            "subjects": {
+                "subCodes": string[],
+    	    "subNames": string[]
+            },
     	"acYear": number,
     	"sem": number,
-    	"subCodes": string[],
-    	"subNames": string[],
     	"branch": string[],
-    	"username": string
+    	"username": string,
+            "grandTotal": number
     }
     ```
 
@@ -206,12 +215,15 @@ _Base url_: `/cbt`
 
     ```json
     {
+      "subjects": {
+        "subCodes": ["18CE4112", "18CE4113", "18CE41L1", "18CE41L2"],
+        "subNames": ["SWM", "MINIPRO", "SADLAB", "EELAB"],
+      }
       "acYear": 3,
       "sem": 2,
-      "subCodes": ["18CE4112", "18CE4113", "18CE41L1", "18CE41L2"],
-      "subNames": ["SWM", "MINIPRO", "SADLAB", "EELAB"],
       "branch": "CSE",
-      "username": "admin"
+      "username": "admin",
+      "grandTotal": 1200
     }
     ```
 - **Response Format**:
@@ -687,7 +699,6 @@ _Base Url_: `/upload`
     }
     ```
 - **Authentication**: Required
-
 
 ## Manage Database
 
