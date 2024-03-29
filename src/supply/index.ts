@@ -3,5 +3,5 @@ import supplyRouter from "./routes";
 
 const router = Router();
 
-router.use("/supply", supplyRouter)
+router.use("/supple", supplyRouter);
 export default router;

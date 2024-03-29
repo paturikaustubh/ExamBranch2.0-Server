@@ -8,20 +8,19 @@ import downloadRouter from "./download";
 import { verifyToken } from "./login/controller";
 import manageRouter from "./manage";
 import costRouter from "./cost";
-import uploadRouter from  "./upload";
-
+import uploadRouter from "./upload";
 
 const router = Router();
 
 router.use("/", loginRouter);
 
-router.use(verifyToken) // comment this to bypass login 
+router.use(verifyToken); // comment this to bypass login
 router.use("/", uploadRouter);
 router.use("/", supplyRouter);
 router.use("/", revalRouter);
 router.use("/", cbtRouter);
 router.use("/", downloadRouter);
 router.use("/", manageRouter);
-router.use("/",costRouter);
+router.use("/", costRouter);
 
 export default router;

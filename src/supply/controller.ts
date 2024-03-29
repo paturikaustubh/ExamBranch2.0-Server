@@ -2,59 +2,75 @@ import { Response, Request } from "express";
 import * as logger from "../services/logger";
 import dbQuery from "../services/db";
 import { isAnyUndefined, responses } from "../services/common";
-import { Details, PrintSupply, StudentInfo, SubjectDetails } from "../interfaces/supply";
+import {
+  Details,
+  ExamSearchSubjectsProps,
+  PrintSupple,
+  StudentInfo,
+  SubjectDetails,
+} from "../interfaces/supply";
 
+//Supple search
+export async function suppleSearch(req: Request, res: Response) {
+  const rollNo = req.query.rollNo as string;
+  if (isAnyUndefined(rollNo)) {
+    res.status(400).json(responses.NotAllParamsGiven);
+    return;
+  }
+  let year: number = 1,
+    sem: number = 2;
+  let semCode = "A";
+  let details: Details = {};
+  try {
+    let printSuppleTable = (await dbQuery(
+      `select subName from printSupply where rollNo = '${rollNo}'`
+    )) as PrintSupple[];
+    // Checking whether the std is already in the print table for registration otherwise fetching std details from the studentInfo table which are not paid
+    let query =
+      printSuppleTable.length > 0
+        ? `select subCode, subName from printSupply where rollNo = ? and acYear = ? and sem = ?`
+        : `select t.subCode,t.subName from studentInfo t LEFT JOIN paidSupply p ON t.subCode=p.subCode and t.rollNo=p.rollNo where t.rollNo=? and t.grade='F' and t.acYear=? and t.sem=? and p.subCode is null and p.rollNo is null`;
 
-//Supply search
-export async function supplySearch(req: Request, res: Response) {
-    const rollNo = req.query.rollNo as string;
-    if (isAnyUndefined(rollNo)) {
-        res.status(400).json({ error: responses.NotAllParamsGiven });
-        return;
+    for (let i = 0; i < 8; i++) {
+      sem = sem == 1 ? 2 : 1;
+      let printSuppleTable = (await dbQuery(query, [
+        rollNo,
+        year,
+        sem,
+      ])) as StudentInfo[];
+      year = i & 1 ? ++year : year;
+      let tempnames: string[] = [];
+      let tempcodes: string[] = [];
+      printSuppleTable.forEach((ele) => {
+        tempnames.push(ele.subName);
+        tempcodes.push(ele.subCode);
+      });
+      let temp: SubjectDetails = {
+        subCodes: tempcodes,
+        subNames: tempnames,
+      };
+      details[semCode] = temp;
+      semCode = String.fromCharCode(semCode.charCodeAt(0) + 1);
     }
-    let year: number = 1, sem: number = 2;
-    let semCode="A"
-    let details:Details={};
-    
-    try {
-        let printSupplyTable = await dbQuery(`select subName from printSupply where rollNo = '${rollNo}'`) as PrintSupply[];
-        // Checking whether the std is already in the print table for registration otherwise fetching std details from the studentInfo table which are not paid
-        let query = (printSupplyTable.length > 0)?`select subCode, subName from printSupply where rollNo = ? and acYear = ? and sem = ?`:
-        `select t.subCode,t.subName from studentInfo t LEFT JOIN paidSupply p ON t.subCode=p.subCode and t.rollNo=p.rollNo where t.rollNo=? and t.grade='F' and t.acYear=? and t.sem=? and p.subCode is null and p.rollNo is null`
-        
-        for (let i = 0; i < 8; i++) {
-            sem=(sem==1)?2:1;
-            let printSupplyTable = await dbQuery(query, [rollNo, year, sem]) as StudentInfo[];               
-            year=(i&1)?++year:year;
-            let tempnames:string[]=[]
-            let tempcodes:string[]=[]
-            printSupplyTable.forEach((ele)=>{ 
-                tempnames.push(ele.subName);
-                tempcodes.push(ele.subCode);
-            });
-            let temp:SubjectDetails = {
-                subCodes:tempcodes,
-                subNames:tempnames,
-            }
-            details[semCode]=temp;
-            semCode=String.fromCharCode(semCode.charCodeAt(0)+1);   
-        }
-        res.json({ subjectDetails:details, printTableExist: printSupplyTable.length>0 });
-        
-        return;
-    } catch (err) {
-        logger.log("error", err);
-        res.json({ error: responses.ErrorWhileDBRequest });
-    }
-    
+    res.json({
+      subjectDetails: details,
+      printTableExist: printSuppleTable.length > 0,
+    });
+
+    return;
+  } catch (err) {
+    logger.log("error", err);
+    res.json(responses.ErrorWhileDBRequest);
+  }
 }
 
 //insertion function into printSupply and paidSupply
 async function insert(req:Request,table:boolean){
     const rollNo:string = req.params.rollNo;
     const username:string = req.body.username;
+    const grandTotal:number =req.body.grandTotal;
     let list:any=[req.body.A.subCodes,req.body.B.subCodes,req.body.C.subCodes,req.body.D.subCodes,req.body.E.subCodes,req.body.F.subCodes,req.body.G.subCodes,req.body.H.subCodes]
-    if (isAnyUndefined(rollNo, username, ...list)) {
+    if (isAnyUndefined(rollNo, username, ...list,grandTotal)) {
         throw responses.NotAllParamsGiven;
     }
     let semChar:string = "A" , year:number = 1,sem:number = 1
@@ -62,49 +78,48 @@ async function insert(req:Request,table:boolean){
     let tableName:string = table?"paidSupply":"printSupply"
     for(const semSubCodes of list){
         for(const subCode of semSubCodes){
-            console.log(semSubCodes,subCode)
             try{
                 let result:any=await dbQuery(`select distinct studentInfo.subName from studentInfo where studentInfo.subCode="${subCode}"`)
                 if(result.length>0){
                     let subName=result[0]["subName"]
-                    await dbQuery(`insert ignore into ${tableName}(rollNo, subCode, subName,acYear, sem, regDate,user) VALUES
-                    ("${rollNo}" ,"${subCode}","${subName}", ${year} ,${sem} ,curdate(),"${username}")`)
+                    await dbQuery(`insert ignore into ${tableName}(rollNo, subCode, subName,acYear, sem, regDate,user,grandTotal) VALUES
+                    ("${rollNo}" ,"${subCode}","${subName}", ${year} ,${sem} ,curdate(),"${username}",${grandTotal})`)
                 }
             }catch (err) {
                 logger.log("error", err);
-                throw responses.ErrorWhileDBRequestWithDone;
+                throw responses.ErrorWhileDBRequest;
             }
         }
-        semChar=String.fromCharCode(semChar.charCodeAt(0)+1);
-        sem=(sem==1)?2:1;
-        year=(sem&1)?++year:year;
-
+        semChar = String.fromCharCode(semChar.charCodeAt(0) + 1);
+        sem = sem == 1 ? 2 : 1;
+        year = sem & 1 ? ++year : year;
+     
     }
-
 }
+
 
 //For Inserting values into printSupply
-export async function printSupply(req: Request, res: Response) {
-    try{
-        await insert(req,false)
-        res.send({done:true});
-    }
-    catch(err){
-        logger.log("error", err);
-        res.status(500).json({error: responses.ErrorWhileDBRequestWithDone})
-    }
+export async function printSupple(req: Request, res: Response) {
+  try {
+    await insert(req, false);
+    res.send({ done: true });
+  } catch (err) {
+    logger.log("error", err);
+    res.status(500).json(responses.ErrorWhileDBRequest);
+  }
 }
 
-//For Inserting values into paidSupply and delete those entries in printsupply
+//For Inserting values into paidSupply and delete those entries in printsupple
 
-export async function paidSupply(req: Request, res: Response) {
-    try{
-        await insert(req,true)
-        await dbQuery(`delete from printSupply where rollNo = "${req.params.rollNo}"`)
-        res.send({ done: true });
-    }
-    catch (err) {
-        logger.log("error", err);
-        return res.json({ error: responses.ErrorWhileDBRequestWithDone });
-    }
+export async function paidSupple(req: Request, res: Response) {
+  try {
+    await insert(req, true);
+    await dbQuery(
+      `delete from printSupply where rollNo = "${req.params.rollNo}"`
+    );
+    res.send({ done: true });
+  } catch (err) {
+    logger.log("error", err);
+    return res.json(responses.ErrorWhileDBRequest);
+  }
 }
