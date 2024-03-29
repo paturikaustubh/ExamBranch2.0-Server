@@ -1,7 +1,7 @@
 import { Response, Request } from "express";
 import * as logger from "../services/logger";
 import dbQuery from "../services/db";
-import { Details, RevalRow, SubjectDetails } from "../interfaces/reval";
+import { Details, RevalRow, RevalTable, SubjectDetails } from '../interfaces/reval';
 import dayjs from "dayjs";
 import { isAnyUndefined, responses } from "../services/common";
 
@@ -60,45 +60,45 @@ export async function revalSearch(req: Request, res: Response) {
 // Common function for Paid and Register
 
 async function revalProcess(req: Request, isPaidTable: boolean) {
-  const { body, params } = req;
-  const { rollNo } = params;
-  const { username, subjects, grandTotal, regular } = body;
-  const details = [
-    subjects.A,
-    subjects.B,
-    subjects.C,
-    subjects.D,
-    subjects.E,
-    subjects.F,
-    subjects.G,
-    subjects.H,
-  ] as SubjectDetails[];
-  const tableName: string = isPaidTable ? "paidReEvaluation" : "printReval";
-  let year: number = 1,
-    sem: number = 1,
-    semCode: string = "A";
-  if (isAnyUndefined(rollNo, username, ...details)) {
-    throw responses.NotAllParamsGiven;
-  }
-  const date = dayjs().format("DD-MMM-YY");
-  for (const subjects of details) {
-    for (let i = 0; i < subjects.subCodes.length; i++) {
-      try {
-        const [subCode, subName] = [subjects.subCodes[i], subjects.subNames[i]];
+    const { body, params } = req;
+    const { rollNo } = params;
+    const { username, subjects, grandTotal, regular } = body.details;
+    const details = [
+        subjects.A,
+        subjects.B,
+        subjects.C,
+        subjects.D,
+        subjects.E,
+        subjects.F,
+        subjects.G,
+        subjects.H,
+    ] as SubjectDetails[];
+    if (isAnyUndefined(rollNo, username, ...details)) {
+        throw responses.NotAllParamsGiven;
+    }
+    const tableName: string = isPaidTable ? "paidReEvaluation" : "printReval";
+    let year: number = 1,
+        sem: number = 1,
+        semCode: string = "A";
+    let rows: RevalTable[][] = [];
+    const date = dayjs().format("DD-MMM-YY");
+    for (const subjects of details) {
+        for (let i = 0; i < subjects.subCodes.length; i++) {
+            const [subCode, subName] = [subjects.subCodes[i], subjects.subNames[i]];
+            rows.push([rollNo, subCode, subName, year, sem, date, (regular === semCode) ? "R" : "", username, grandTotal as number]);    
+        }
+        sem = sem === 1 ? 2 : 1;
+        year = sem === 1 ? ++year : year;
+        semCode = String.fromCharCode(semCode.charCodeAt(0) + 1);
+    }
+    try {
         await dbQuery(
-          `INSERT IGNORE INTO ${tableName} (rollNo, subCode, subName, acYear, sem, user, stat, regDate, grandTotal) VALUES ('${rollNo}', '${subCode}', '${subName}', '${year}', '${sem}', '${username}', '${
-            regular === semCode ? "R" : ""
-          }', '${date}', ${grandTotal as number})`
+            `INSERT IGNORE INTO ${tableName} (rollNo, subCode, subName, acYear, sem, regDate, stat, user, grandTotal) VALUES ?`, [rows]
         );
-      } catch (err) {
+    } catch (err) {
         logger.log("error", err);
         throw responses.ErrorWhileDBRequest;
-      }
     }
-    sem = sem === 1 ? 2 : 1;
-    year = sem === 1 ? ++year : year;
-    semCode = String.fromCharCode(semCode.charCodeAt(0) + 1);
-  }
 }
 
 // Inserting std into printReval Table
