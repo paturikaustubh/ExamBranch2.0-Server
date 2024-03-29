@@ -118,8 +118,8 @@ async function uploadAllFilesInDir(
   }
 }
 
-export async function restoreStudentInfo({ body }: Request, res: Response) {
-  const loc = path.join(body.loc.trim());
+export async function restoreStudentInfo({ body:{usernameInToken, loc}, ip }: Request, res: Response) {
+  loc = path.join(loc.trim());
 
   if (isAnyUndefined(loc))
     return res.status(400).json(responses.NotAllParamsGiven);
@@ -129,6 +129,7 @@ export async function restoreStudentInfo({ body }: Request, res: Response) {
         let r = await uploadFromLoc(path.join(loc, `backup${ext}`), "studentinfo")
         if(!('error' in r)) {
             logger.log("info", "Restoring studentinfo Done");
+            logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has restored studentinfo`);
             return res.json(responses.DoneMSG)
         }
     }
@@ -140,11 +141,11 @@ export async function restoreStudentInfo({ body }: Request, res: Response) {
 }
 
 export async function uploadHandler(
-  { body, params: { tableName } }: Request,
+  { body:{ ext, loc, usernameInToken }, ip, params: { tableName } }: Request,
   res: Response
 ) {
-  const ext: string = body.ext || ".xlsx";
-  const loc = body.loc.trim();
+  ext = ext || ".xlsx";
+  loc = loc.trim();
   if (isAnyUndefined(loc, ext))
     return res.status(400).json(responses.NotAllParamsGiven);
 
@@ -157,23 +158,22 @@ export async function uploadHandler(
   const stat = await uploadAllFilesInDir(loc, ext, tableName);
   if ("error" in stat) {
     res.status(500);
+  } else {
+    logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has uploded into ${tableName} table`);
   }
   res.json(stat);
 }
 
 export async function uploadStudentInfo(
-  { body, params: { tableName } }: Request,
+  { body:{acYear, sem, exYear, exMonth, ext, loc, usernameInToken}, params: { tableName }, ip }: Request,
   res: Response
 ) {
-  const ext: string = body.ext || ".xlsx";
-  const acYear = body.acYear;
-  const sem = body.sem;
-  const exYear = body.exYear;
-  const exMonth = body.exMonth;
-  if (isAnyUndefined(body.loc, ext, acYear, sem, exYear, exMonth)) {
+  ext= ext || ".xlsx";
+  
+  if (isAnyUndefined(loc, ext, acYear, sem, exYear, exMonth)) {
     return res.status(400).json(responses.NotAllParamsGiven);
   }
-  const loc = body.loc.trim();
+  loc = loc.trim();
 
   if (!supportedExtensions.includes(ext))
     return res.status(400).json(responses.UnsupportedFileExt);
@@ -216,6 +216,7 @@ export async function uploadStudentInfo(
       })
     );
     logger.log("info", "Results uploded into studentinfo successfully");
+    logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has uploded into studentinfo table`);
     res.json(responses.DoneMSG);
   } catch (err) {
     logger.log(
@@ -228,7 +229,7 @@ export async function uploadStudentInfo(
 }
 
 export async function uploadCBTSubjects(
-  { body: { loc, ext, acYear, sem, regYear } }: Request,
+  { body: { loc, ext, acYear, sem, regYear, usernameInToken }, ip }: Request,
   res: Response
 ) {
   ext = ext ?? ".xlsx";
@@ -273,6 +274,7 @@ export async function uploadCBTSubjects(
       })
     );
     logger.log("info", "Results uploded into cbtsubjects successfully");
+    logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has uploded into cbtsubjects table`);
     res.json(responses.DoneMSG);
   } catch (err) {
     logger.log(
