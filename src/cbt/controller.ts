@@ -55,21 +55,22 @@ export async function searchCBT(req: Request, res: Response) {
 }
 
 async function processCBT(req: Request, res: Response, tableName: string) {
-    const acYear: number = req.body.acYear;
-    const sem: number = req.body.sem;
-    const { subCodes, subNames }: { subCodes: string[]; subNames: string[] } =
-        req.body.subjects;
-    const rollNo: string = req.params.rollNo;
-    const branch: string = req.body.branch;
-    const username: string = req.body.username;
-    const grandTotal: number = req.body.grandTotal; 
+  const acYear: number = req.body.acYear;
+  const sem: number = req.body.sem;
 
-    if (
-        isAnyUndefined(acYear, sem, subCodes, subNames, branch, rollNo, username)
-    ) {
-        res.status(400).json(responses.NotAllParamsGiven);
-        return;
-    }
+  if(isAnyUndefined(req.body.subjects)) return res.status(400).json(responses.NotAllParamsGiven);
+
+  const { subCodes, subNames }: { subCodes: string[]; subNames: string[] } =
+    req.body.subjects;
+  const rollNo: string = req.params.rollNo;
+  const branch: string = req.body.branch;
+  const username: string = req.body.username;
+
+  if (
+    isAnyUndefined(acYear, sem, subCodes, subNames, branch, rollNo, username)
+  ) {
+    return res.status(400).json(responses.NotAllParamsGiven);
+  }
 
     try {
         await Promise.all(
