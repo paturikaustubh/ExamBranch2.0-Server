@@ -6,8 +6,10 @@ import * as logger from "./logger";
 const connection = mysql.createConnection(dbConfig);
 
 connection.connect((err, result) => {
-  err ? 
-    logger.log("fatal", err) :
+  if(err){
+    logger.log("fatal", "Database error", err)
+    logger.log("warn", "You need to restart the server to retry, connecting to database")
+  }else
     logger.log("info", "Connected to database");
 });
 

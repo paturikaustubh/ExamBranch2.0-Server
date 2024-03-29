@@ -10,15 +10,17 @@ function generateToken(username: string) {
 }
 
 export function verifyToken(
-  { cookies }: Request,
+  req: Request,
   res: Response,
   next: NextFunction
 ) {
+  const cookies = req.cookies;
   if (cookies) {
     const cookieValue = cookies.Token as string;
     if (cookieValue) {
       const [username, _Token] = cookieValue.split("@");
       if (generateToken(username) === cookieValue) {
+        req.body.usernameInToken = username;
         next();
         return;
       }
@@ -44,7 +46,6 @@ export function isUserValid(req: Request, res: Response) {
       }
 
       const passwordHash = md5(password);
-      console.log(password, passwordHash, result[0]);
 
       if (passwordHash !== result[0]["password"]) {
         res.json({ goahead: false, error: `Incorrect password` });
