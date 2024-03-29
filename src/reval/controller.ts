@@ -61,7 +61,8 @@ async function revalProcess(req: Request, isPaidTable: boolean) {
         throw responses.BadRequest;
     }
     const { rollNo } = params;
-    const { username, subjects, grandTotal, regular, ip } = body;
+    const ip = req.ip;
+    const { username, subjects, grandTotal, regular } = body;
     const details = [
         subjects.A,
         subjects.B,
@@ -121,6 +122,7 @@ export async function registerReval(req: Request, res: Response) {
   const rollNo: string = req.params.rollNo;
   try {
     await revalProcess(req, true);
+    await dbQuery(`DELETE FROM printReval WHERE rollNo = '${rollNo}'`);
   } catch (err) {
     logger.log("error", err);
     return res.json(err);
@@ -146,6 +148,7 @@ export async function deleteFromReval(req: Request, res: Response) {
             query += `sem = ${sem}`;
         }
         await dbQuery(query);
+        logger.log(`info`, `${req.body.usernameInToken} has deleted paidReEvaluation on IP ${req.ip?.slice(7)}`)
         res.json({ done: "true" });
     } catch (err) {
         logger.log("error", err);

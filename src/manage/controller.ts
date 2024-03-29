@@ -35,7 +35,7 @@ export async function editStdDetails(req: Request, res: Response) {
         const rollNo: string = req.params.rollNo;
         const username: string = req.body.username;
         const tableName: string = req.body.tableName;
-        const ip = req.body.ip as string;
+        const ip = req.ip as string;
         if (isAnyUndefined(req.body.details)) {
             return res.status(400).json(responses.BadRequest);
         }
@@ -102,7 +102,7 @@ export async function editStdDetails(req: Request, res: Response) {
 export async function addStdDetails(req: Request, res: Response) {
     const rollNo: string = req.params.rollNo;
     const { details } = req.body;
-    const ip = req.body.ip as string;
+    const ip = req.ip as string;
     if (
         isAnyUndefined(
             rollNo,
@@ -153,7 +153,7 @@ export async function deleteStdDetails(req: Request, res: Response) {
     if (isAnyUndefined(rollNo, tableName)) {
         return res.status(400).json(responses.NotAllParamsGiven);
     }
-    let ip = req.body.ip as string;
+    let ip = req.ip as string;
     try {
         // If subCodes is not given then it belongs to print tables
         await dbQuery(

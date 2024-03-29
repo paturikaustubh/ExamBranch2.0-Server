@@ -65,12 +65,14 @@ async function processCBT(req: Request, res: Response, tableName: string) {
   const rollNo: string = req.params.rollNo;
   const branch: string = req.body.branch;
   const username: string = req.body.username;
+  const grandTotal: number = req.body.grandTotal; 
 
-  if (
-    isAnyUndefined(acYear, sem, subCodes, subNames, branch, rollNo, username)
-  ) {
-    return res.status(400).json(responses.NotAllParamsGiven);
-  }
+    if (
+        isAnyUndefined(acYear, sem, subCodes, subNames, branch, rollNo, username, grandTotal)
+    ) {
+        res.status(400).json(responses.NotAllParamsGiven);
+        return;
+    }
 
     try {
         await Promise.all(
