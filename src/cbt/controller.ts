@@ -58,16 +58,27 @@ async function processCBT(req: Request, res: Response, tableName: string) {
   const acYear: number = req.body.acYear;
   const sem: number = req.body.sem;
 
-  if(isAnyUndefined(req.body.subjects)) return res.status(400).json(responses.NotAllParamsGiven);
+  if (isAnyUndefined(req.body.subjects))
+    return res.status(400).json(responses.NotAllParamsGiven);
 
   const { subCodes, subNames }: { subCodes: string[]; subNames: string[] } =
     req.body.subjects;
   const rollNo: string = req.params.rollNo;
   const branch: string = req.body.branch;
   const username: string = req.body.username;
+  const grandTotal: number = req.body.grandTotal;
 
   if (
-    isAnyUndefined(acYear, sem, subCodes, subNames, branch, rollNo, username)
+    isAnyUndefined(
+      acYear,
+      sem,
+      subCodes,
+      subNames,
+      branch,
+      rollNo,
+      username,
+      grandTotal
+    )
   ) {
     return res.status(400).json(responses.NotAllParamsGiven);
   }
@@ -76,9 +87,12 @@ async function processCBT(req: Request, res: Response, tableName: string) {
     await Promise.all(
       subCodes.map(async (subCode, index) => {
         await dbQuery(
-          `INSERT IGNORE INTO ${tableName}(rollNo, subCode, acYear, sem, subName, regDate, branch, user) values ("${rollNo}","${subCode}","${acYear}","${sem}","${
+          `INSERT IGNORE INTO ${tableName}(rollNo, subCode, acYear, sem, subName, regDate, branch, user, grandTotal) values ("${rollNo}","${subCode}","${acYear}","${sem}","${
             subNames[index]
-          }", "${dayjs().format("DD MMM, YY")}","${branch}", "${username}")`
+          
+          }", "${dayjs().format(
+            "DD MMM, YY"
+          )}","${branch}", "${username}", ${grandTotal})`
         );
       })
     );
@@ -101,30 +115,47 @@ export async function paidCBT(req: Request, res: Response) {
 }
 
 export async function deleteFromCBT(req: Request, res: Response) {
-  const year = parseInt(req.body.acYear || 0);
-  const sem = parseInt(req.body.sem || 0);
+  const year: number = parseInt(req.query.acYear as string);
+  const sem: number = parseInt(req.query.sem as string);
   try {
     if (year === 0 && sem === 0) {
       await dbQuery("TRUNCATE paidcbt");
-      // await dbQuery("truncate cbtsubjects");
-      res.send({ deleted: true });
+      await dbQuery("TRUNCATE printcbt");
+      await dbQuery("TRUNCATE cbtsubjects");
+      res.send(responses.DoneMSG);
       return;
     }
-    let query = "DELETE FROM paidcbt where ";
+    let paidCbtDelete = "DELETE FROM paidcbt where ";
     if (year !== 0) {
-      query += `acYear = ${year}`;
+      paidCbtDelete += `acYear = ${year}`;
     }
     if (sem !== 0) {
-      if (year !== 0) query += " and ";
-      query += `sem = ${sem}`;
+      if (year !== 0) paidCbtDelete += " and ";
+      paidCbtDelete += `sem = ${sem}`;
     }
-    await dbQuery(query);
+    let printCbtDelete = "DELETE FROM paidcbt where ";
+    if (year !== 0) {
+      printCbtDelete += `acYear = ${year}`;
+    }
+    if (sem !== 0) {
+      if (year !== 0) printCbtDelete += " and ";
+      printCbtDelete += `sem = ${sem}`;
+    }
+    let cbtSubsDelete = "DELETE FROM paidcbt where ";
+    if (year !== 0) {
+      cbtSubsDelete += `acYear = ${year}`;
+    }
+    if (sem !== 0) {
+      if (year !== 0) cbtSubsDelete += " and ";
+      cbtSubsDelete += `sem = ${sem}`;
+    }
+    await dbQuery(paidCbtDelete);
+    await dbQuery(printCbtDelete);
+    await dbQuery(cbtSubsDelete);
+    res.send(responses.DoneMSG);
   } catch (err) {
     logger.log("error", err);
-    res.status(500).json({
-      error:
-        "Error occurred while processing the request. Check server logs for more information.",
-    });
+    res.status(500).json(responses.ErrorWhileDBRequest);
   }
 }
 
