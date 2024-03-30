@@ -71,7 +71,7 @@ async function insert(req: Request, isPaidTable: boolean) {
   const rollNo: string = req.params.rollNo;
   const username: string = req.body.username;
   const { subjects }: { subjects: ExamSearchSubjectsProps } = req.body;
-  const grandTotal : number=req.body.grandTotal;
+  const grandTotal: number = req.body.grandTotal;
   let list: string[][] = [
     subjects.A.subCodes,
     subjects.B.subCodes,
@@ -82,7 +82,7 @@ async function insert(req: Request, isPaidTable: boolean) {
     subjects.G.subCodes,
     subjects.H.subCodes,
   ];
-  if (isAnyUndefined(rollNo, username, ...list,grandTotal)) {
+  if (isAnyUndefined(rollNo, username, ...list, grandTotal)) {
     throw responses.NotAllParamsGiven;
   }
   let semChar: string = "A",
@@ -99,7 +99,9 @@ async function insert(req: Request, isPaidTable: boolean) {
         if (result.length > 0) {
           let subName = result[0]["subName"];
           await dbQuery(`insert ignore into ${tableName}(rollNo, subCode, subName,acYear, sem, regDate,user,grandTotal) VALUES
-                    ("${rollNo}" ,"${subCode}","${subName}", ${year} ,${sem} ,"${dayjs().format("DD MMM, YY")}","${username}",${grandTotal} )`);
+                    ("${rollNo}" ,"${subCode}","${subName}", ${year} ,${sem} ,"${dayjs().format(
+            "DD MMM, YY"
+          )}","${username}",${grandTotal} )`);
         }
       } catch (err) {
         logger.log("error", err);
@@ -149,33 +151,31 @@ export async function deleteFromSupple(req: Request, res: Response) {
     }
     let paidSuppleDelete = "DELETE FROM paidSupply where ";
     if (year !== 0) {
-        paidSuppleDelete += `acYear = ${year}`;
+      paidSuppleDelete += `acYear = ${year}`;
     }
     if (sem !== 0) {
-      if (year !== 0)   paidSuppleDelete += " and ";
-        paidSuppleDelete += `sem = ${sem}`;
+      if (year !== 0) paidSuppleDelete += " and ";
+      paidSuppleDelete += `sem = ${sem}`;
     }
     if (year === 0 && sem === 0) {
       await dbQuery("TRUNCATE printSupply");
-      res.send({ deleted: true });
+      res.send(responses.DoneMSG);
       return;
     }
     let printSuppleDelete = "DELETE FROM printSupply where ";
     if (year !== 0) {
-        printSuppleDelete += `acYear = ${year}`;
+      printSuppleDelete += `acYear = ${year}`;
     }
     if (sem !== 0) {
-      if (year !== 0)   printSuppleDelete += " and ";
-        printSuppleDelete += `sem = ${sem}`;
+      if (year !== 0) printSuppleDelete += " and ";
+      printSuppleDelete += `sem = ${sem}`;
     }
-    await dbQuery  (printSuppleDelete);
-    await dbQuery  (paidSuppleDelete);
+    await dbQuery(printSuppleDelete);
+    await dbQuery(paidSuppleDelete);
+    res.send(responses.DoneMSG);
   } catch (err) {
     logger.log("error", err);
-    res.status(500).json({
-      error:
-        "Error occurred while processing the request. Check server logs for more information.",
-    });
+    res.status(500).json(responses.ErrorWhileDBRequest);
   }
-  res.send({ deleted : true });
+  res.send(responses.DoneMSG);
 }

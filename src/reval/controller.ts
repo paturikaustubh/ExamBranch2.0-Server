@@ -85,7 +85,7 @@ async function revalProcess(req: Request, isPaidTable: boolean) {
   if (isAnyUndefined(rollNo, username, ...details)) {
     throw responses.NotAllParamsGiven;
   }
-  let rows =[] ;
+  let rows = [];
   const date = dayjs().format("DD MMM, YY");
   for (const subjects of details) {
     for (let i = 0; i < subjects.subCodes.length; i++) {
@@ -148,7 +148,7 @@ export async function registerReval(req: Request, res: Response) {
     logger.log("error", err);
     return res.json(err);
   }
-  return res.json({ done: true });
+  return res.json(responses.DoneMSG);
 }
 
 export async function deleteFromReval(req: Request, res: Response) {
