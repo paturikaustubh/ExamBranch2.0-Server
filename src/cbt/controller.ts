@@ -65,11 +65,20 @@ async function processCBT(req: Request, res: Response, tableName: string) {
     req.body.subjects;
   const rollNo: string = req.params.rollNo;
   const branch: string = req.body.branch;
-    const username: string = req.body.username;
-    const grandTotal: number = req.body.grandTotal;
+  const username: string = req.body.username;
+  const grandTotal: number = req.body.grandTotal;
 
   if (
-    isAnyUndefined(acYear, sem, subCodes, subNames, branch, rollNo, username, grandTotal)
+    isAnyUndefined(
+      acYear,
+      sem,
+      subCodes,
+      subNames,
+      branch,
+      rollNo,
+      username,
+      grandTotal
+    )
   ) {
     return res.status(400).json(responses.NotAllParamsGiven);
   }
@@ -80,7 +89,9 @@ async function processCBT(req: Request, res: Response, tableName: string) {
         await dbQuery(
           `INSERT IGNORE INTO ${tableName}(rollNo, subCode, acYear, sem, subName, regDate, branch, user, grandTotal) values ("${rollNo}","${subCode}","${acYear}","${sem}","${
             subNames[index]
-          }", "${dayjs().format("DD-MMM-YY")}","${branch}", "${username}", ${grandTotal})`
+          }", "${dayjs().format(
+            "DD-MMM-YY"
+          )}","${branch}", "${username}", ${grandTotal})`
         );
       })
     );
@@ -110,7 +121,7 @@ export async function deleteFromCBT(req: Request, res: Response) {
       await dbQuery("TRUNCATE paidcbt");
       await dbQuery("TRUNCATE printcbt");
       await dbQuery("TRUNCATE cbtsubjects");
-      res.send({ deleted: true });
+      res.send(responses.DoneMSG);
       return;
     }
     let paidCbtDelete = "DELETE FROM paidcbt where ";
@@ -140,12 +151,10 @@ export async function deleteFromCBT(req: Request, res: Response) {
     await dbQuery(paidCbtDelete);
     await dbQuery(printCbtDelete);
     await dbQuery(cbtSubsDelete);
+    res.send(responses.DoneMSG);
   } catch (err) {
     logger.log("error", err);
-    res.status(500).json({
-      error:
-        "Error occurred while processing the request. Check server logs for more information.",
-    });
+    res.status(500).json(responses.ErrorWhileDBRequest);
   }
 }
 

@@ -156,7 +156,7 @@ export async function deleteFromReval(req: Request, res: Response) {
     if (year === 0 && sem === 0) {
       await dbQuery("TRUNCATE paidReEvaluation");
       await dbQuery("TRUNCATE printReval");
-      res.send({ deleted: true });
+      res.send(responses.DoneMSG);
       return;
     }
 
@@ -185,9 +185,9 @@ export async function deleteFromReval(req: Request, res: Response) {
         req.body.usernameInToken
       } has deleted paidReEvaluation on IP ${req.ip?.slice(7)}`
     );
-    res.json({ done: "true" });
+    res.json(responses.DoneMSG);
   } catch (err) {
     logger.log("error", err);
-    res.json(responses.ErrorWhileDBRequest);
+    res.status(500).json(responses.ErrorWhileDBRequest);
   }
 }

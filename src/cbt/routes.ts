@@ -14,6 +14,6 @@ router.get("/search", searchCBT);
 router.get("/branchs", distBranchs);
 router.post("/print/:rollNo", printCBT);
 router.post("/paid/:rollNo", paidCBT);
-router.delete("/paid", deleteFromCBT);
+router.delete("", deleteFromCBT);
 
 export default router;
