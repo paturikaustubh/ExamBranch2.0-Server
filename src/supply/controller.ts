@@ -9,6 +9,7 @@ import {
   StudentInfo,
   SubjectDetails,
 } from "../interfaces/supply";
+import dayjs from "dayjs";
 
 //Supple search
 export async function suppleSearch(req: Request, res: Response) {
@@ -70,6 +71,7 @@ async function insert(req: Request, isPaidTable: boolean) {
   const rollNo: string = req.params.rollNo;
   const username: string = req.body.username;
   const { subjects }: { subjects: ExamSearchSubjectsProps } = req.body;
+  const grandTotal : number=req.body.grandTotal;
   let list: string[][] = [
     subjects.A.subCodes,
     subjects.B.subCodes,
@@ -80,7 +82,7 @@ async function insert(req: Request, isPaidTable: boolean) {
     subjects.G.subCodes,
     subjects.H.subCodes,
   ];
-  if (isAnyUndefined(rollNo, username, ...list)) {
+  if (isAnyUndefined(rollNo, username, ...list,grandTotal)) {
     throw responses.NotAllParamsGiven;
   }
   let semChar: string = "A",
@@ -96,8 +98,8 @@ async function insert(req: Request, isPaidTable: boolean) {
         );
         if (result.length > 0) {
           let subName = result[0]["subName"];
-          await dbQuery(`insert ignore into ${tableName}(rollNo, subCode, subName,acYear, sem, regDate,user) VALUES
-                    ("${rollNo}" ,"${subCode}","${subName}", ${year} ,${sem} ,curdate(),"${username}")`);
+          await dbQuery(`insert ignore into ${tableName}(rollNo, subCode, subName,acYear, sem, regDate,user,grandTotal) VALUES
+                    ("${rollNo}" ,"${subCode}","${subName}", ${year} ,${sem} ,"${dayjs().format("DD MMM, YY")}","${username}",${grandTotal} )`);
         }
       } catch (err) {
         logger.log("error", err);
@@ -134,4 +136,46 @@ export async function paidSupple(req: Request, res: Response) {
     logger.log("error", err);
     return res.json(responses.ErrorWhileDBRequest);
   }
+}
+
+export async function deleteFromSupple(req: Request, res: Response) {
+  const year = parseInt(req.query.acYear as string);
+  const sem = parseInt(req.query.sem as string);
+  try {
+    if (year === 0 && sem === 0) {
+      await dbQuery("TRUNCATE paidSupply");
+      res.send({ deleted: true });
+      return;
+    }
+    let paidSuppleDelete = "DELETE FROM paidSupply where ";
+    if (year !== 0) {
+        paidSuppleDelete += `acYear = ${year}`;
+    }
+    if (sem !== 0) {
+      if (year !== 0)   paidSuppleDelete += " and ";
+        paidSuppleDelete += `sem = ${sem}`;
+    }
+    if (year === 0 && sem === 0) {
+      await dbQuery("TRUNCATE printSupply");
+      res.send({ deleted: true });
+      return;
+    }
+    let printSuppleDelete = "DELETE FROM printSupply where ";
+    if (year !== 0) {
+        printSuppleDelete += `acYear = ${year}`;
+    }
+    if (sem !== 0) {
+      if (year !== 0)   printSuppleDelete += " and ";
+        printSuppleDelete += `sem = ${sem}`;
+    }
+    await dbQuery  (printSuppleDelete);
+    await dbQuery  (paidSuppleDelete);
+  } catch (err) {
+    logger.log("error", err);
+    res.status(500).json({
+      error:
+        "Error occurred while processing the request. Check server logs for more information.",
+    });
+  }
+  res.send({ deleted : true });
 }

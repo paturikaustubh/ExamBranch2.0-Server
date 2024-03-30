@@ -82,9 +82,11 @@ async function revalProcess(req: Request, isPaidTable: boolean) {
   let year: number = 1,
     sem: number = 1,
     semCode: string = "A";
-  let rows: RevalTable[][] = [];
-  const date = dayjs().format("DD-MMM-YY");
-  // Fetching and storing all the details of the subjects to insert them into print/paid tables
+  if (isAnyUndefined(rollNo, username, ...details)) {
+    throw responses.NotAllParamsGiven;
+  }
+  let rows =[] ;
+  const date = dayjs().format("DD MMM, YY");
   for (const subjects of details) {
     for (let i = 0; i < subjects.subCodes.length; i++) {
       const [subCode, subName] = [subjects.subCodes[i], subjects.subNames[i]];
