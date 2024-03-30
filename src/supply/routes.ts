@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { printSupple, suppleSearch, paidSupple } from "./controller";
+import { printSupple, suppleSearch, paidSupple, deleteFromSupple } from "./controller";
 
 const router: Router = Router();
 
@@ -9,6 +9,8 @@ router.get("/search", suppleSearch);
 router.post("/print/:rollNo", printSupple);
 //For Inserting values into paidSupple and delete those entries in printsupple
 router.post("/paid/:rollNo", paidSupple);
+//deleting paid and printSupple
+router.delete("/paid", deleteFromSupple);
 
 // Registering all the supple module routes
 
