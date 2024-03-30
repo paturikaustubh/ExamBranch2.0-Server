@@ -58,7 +58,8 @@ async function processCBT(req: Request, res: Response, tableName: string) {
   const acYear: number = req.body.acYear;
   const sem: number = req.body.sem;
 
-  if(isAnyUndefined(req.body.subjects)) return res.status(400).json(responses.NotAllParamsGiven);
+  if (isAnyUndefined(req.body.subjects))
+    return res.status(400).json(responses.NotAllParamsGiven);
 
   const { subCodes, subNames }: { subCodes: string[]; subNames: string[] } =
     req.body.subjects;
@@ -106,19 +107,38 @@ export async function deleteFromCBT(req: Request, res: Response) {
   try {
     if (year === 0 && sem === 0) {
       await dbQuery("TRUNCATE paidcbt");
-      // await dbQuery("truncate cbtsubjects");
+      await dbQuery("TRUNCATE printcbt");
+      await dbQuery("TRUNCATE cbtsubjects");
       res.send({ deleted: true });
       return;
     }
-    let query = "DELETE FROM paidcbt where ";
+    let paidCbtDelete = "DELETE FROM paidcbt where ";
     if (year !== 0) {
-      query += `acYear = ${year}`;
+      paidCbtDelete += `acYear = ${year}`;
     }
     if (sem !== 0) {
-      if (year !== 0) query += " and ";
-      query += `sem = ${sem}`;
+      if (year !== 0) paidCbtDelete += " and ";
+      paidCbtDelete += `sem = ${sem}`;
     }
-    await dbQuery(query);
+    let printCbtDelete = "DELETE FROM paidcbt where ";
+    if (year !== 0) {
+      printCbtDelete += `acYear = ${year}`;
+    }
+    if (sem !== 0) {
+      if (year !== 0) printCbtDelete += " and ";
+      printCbtDelete += `sem = ${sem}`;
+    }
+    let cbtSubsDelete = "DELETE FROM paidcbt where ";
+    if (year !== 0) {
+      cbtSubsDelete += `acYear = ${year}`;
+    }
+    if (sem !== 0) {
+      if (year !== 0) cbtSubsDelete += " and ";
+      cbtSubsDelete += `sem = ${sem}`;
+    }
+    await dbQuery(paidCbtDelete);
+    await dbQuery(printCbtDelete);
+    await dbQuery(cbtSubsDelete);
   } catch (err) {
     logger.log("error", err);
     res.status(500).json({
