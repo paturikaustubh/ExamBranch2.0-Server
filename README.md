@@ -534,6 +534,209 @@ _Base Url_: `/upload`
     ```
 - **Authentication**: Required
 
+## Supplementary
+
+*Base URL*: `/reval`
+
+### Search (`GET /api/supple/search`)
+
+- **Purpose**: To retrieve all the subjects of a student for supplementary
+- **Request Format**:
+
+  - *Headers*: `Cookie: Token=<auth-token>`
+  - *Parameters*:
+    - `rollNo` (required, string): Student Roll Number
+- **Response Format**:
+
+  - *Status Code*: 200 OK
+  - *Body*:
+
+    ```json
+    {
+      "subjectDetails": {
+         "A": {
+            "subCodes": string[],
+            "subNames": string[]
+          },
+          "B": {
+            "subCodes": string[],
+            "subNames": string[]
+          },
+          "C": {
+            "subCodes": string[],
+            "subNames": string[]
+          },
+          "D": {
+            "subCodes": string[],
+            "subNames": string[]
+          },
+          "E": {
+            "subCodes": string[],
+            "subNames": string[]
+          },
+          "F": {
+            "subCodes": string[],
+            "subNames": string[]
+          },
+          "G": {
+            "subCodes": string[],
+            "subNames": string[]
+          },
+          "H": {
+            "subCodes": string[],
+            "subNames": string[]
+          }
+        },
+        "printTableExist": boolean
+
+    }
+    ```
+
+    - Example
+
+    ```json
+
+  {
+  "subjectDetails": {
+    "A": {
+      "subCodes": [],
+      "subNames": []
+    },
+    "B": {
+      "subCodes": [],
+      "subNames": []
+    },
+    "C": {
+      "subCodes": [],
+      "subNames": []
+    },
+    "D": {
+      "subCodes": [],
+      "subNames": []
+    },
+    "E": {
+      "subCodes": [],
+      "subNames": []
+    },
+    "F": {
+      "subCodes": [
+        "16CE3202",
+        "16CE3203",
+        "16CE3204"
+      ],
+      "subNames": [
+        "FE",
+        "EE",
+        "IE"
+      ]
+    },
+    "G": {
+      "subCodes": [],
+      "subNames": []
+    },
+    "H": {
+      "subCodes": [],
+      "subNames": []
+    }
+  },
+  "printTableExist": false
+}
+    ```
+- **Authentication**: Required
+
+### Print (`POST /api/supple/print/:rollNo`)
+
+- **Purpose**: To add all the selected subjects to printSupple table.
+- **Request Format**:
+
+  - *Headers*: `Cookie: Token=<auth-token>`
+  - *Path Parameters*:
+
+    - `rollNo` (required, string): Student roll number.
+  - *Body*:
+
+    ```json
+    {
+       "subjects": {
+          "A": {
+          "subCodes": string[],
+          "subNames": string[]
+        },
+        "B": {
+          "subCodes": string[],
+          "subNames": string[]
+        },
+        "C": {
+          "subCodes": string[],
+          "subNames": string[]
+        },
+        "D": {
+          "subCodes": string[],
+          "subNames": string[]
+        },
+        "E": {
+          "subCodes": string[],
+          "subNames": string[]
+        },
+        "F": {
+          "subCodes": string[],
+          "subNames": string[]
+        },
+        "G": {
+          "subCodes": string[],
+          "subNames": string[]
+        },
+        "H": {
+          "subCodes": string[],
+          "subNames": string[]
+        }
+
+        },
+      "username": string,
+      "grandTotal": number
+    }
+    ```
+
+    - Example
+
+    ```json
+    {
+    "subjects":{ 
+        "A": {
+            "subCodes": [],
+            "subNames": []
+        },
+        "B": {
+            "subCodes": [],
+            "subNames": []
+        },
+        "C": {
+            "subCodes": [],
+            "subNames": []
+        },
+        "D": { "subCodes": ["16CE3201"],"subNames": ["DSS"]},
+        "E": { "subCodes": ["16CE3103"],"subNames": ["EH"]},
+        "F": { "subCodes": [],"subNames": []},
+        "G": { "subCodes": [],"subNames": []},
+        "H": { "subCodes": [],"subNames": []}
+    },
+  "username":"hari",
+  "grandTotal":1000
+}
+    ```
+- **Response Format**:
+
+  - Status Code: 200 OK
+  - Body:
+
+    ```json
+    {
+    	"done": boolean,
+    	"error"?: string 
+    }
+    ```
+- **Authentication**: Required
+
 ### Paid (`POST /api/reval/paid/:rollNo`)
 
 - **Purpose**: To add all the selected subjects to paidReEvaluation table.

@@ -9,10 +9,11 @@ import {
   StudentInfo,
   SubjectDetails,
 } from "../interfaces/supply";
+import dayjs from "dayjs";
 
 //Supple search
 export async function suppleSearch(req: Request, res: Response) {
-  const rollNo = req.query.rollNo as string;
+  const rollNo = req.query.rollNo;
   if (isAnyUndefined(rollNo)) {
     res.status(400).json(responses.NotAllParamsGiven);
     return;
@@ -21,6 +22,7 @@ export async function suppleSearch(req: Request, res: Response) {
     sem: number = 2;
   let semCode = "A";
   let details: Details = {};
+
   try {
     let printSuppleTable = (await dbQuery(
       `select subName from printSupply where rollNo = '${rollNo}'`
@@ -65,38 +67,50 @@ export async function suppleSearch(req: Request, res: Response) {
 }
 
 //insertion function into printSupply and paidSupply
-async function insert(req:Request,table:boolean){
-    const rollNo:string = req.params.rollNo;
-    const username:string = req.body.username;
-    const grandTotal:number =req.body.grandTotal;
-    let list:any=[req.body.A.subCodes,req.body.B.subCodes,req.body.C.subCodes,req.body.D.subCodes,req.body.E.subCodes,req.body.F.subCodes,req.body.G.subCodes,req.body.H.subCodes]
-    if (isAnyUndefined(rollNo, username, ...list,grandTotal)) {
-        throw responses.NotAllParamsGiven;
-    }
-    let semChar:string = "A" , year:number = 1,sem:number = 1
-    //if table is true then insertion is performed into paidSupply else printSupply
-    let tableName:string = table?"paidSupply":"printSupply"
-    for(const semSubCodes of list){
-        for(const subCode of semSubCodes){
-            try{
-                let result:any=await dbQuery(`select distinct studentInfo.subName from studentInfo where studentInfo.subCode="${subCode}"`)
-                if(result.length>0){
-                    let subName=result[0]["subName"]
-                    await dbQuery(`insert ignore into ${tableName}(rollNo, subCode, subName,acYear, sem, regDate,user,grandTotal) VALUES
-                    ("${rollNo}" ,"${subCode}","${subName}", ${year} ,${sem} ,curdate(),"${username}",${grandTotal})`)
-                }
-            }catch (err) {
-                logger.log("error", err);
-                throw responses.ErrorWhileDBRequest;
-            }
+async function insert(req: Request, isPaidTable: boolean) {
+  const rollNo: string = req.params.rollNo;
+  const username: string = req.body.username;
+  const { subjects }: { subjects: ExamSearchSubjectsProps } = req.body;
+  const grandTotal : number=req.body.grandTotal;
+  let list: string[][] = [
+    subjects.A.subCodes,
+    subjects.B.subCodes,
+    subjects.C.subCodes,
+    subjects.D.subCodes,
+    subjects.E.subCodes,
+    subjects.F.subCodes,
+    subjects.G.subCodes,
+    subjects.H.subCodes,
+  ];
+  if (isAnyUndefined(rollNo, username, ...list,grandTotal)) {
+    throw responses.NotAllParamsGiven;
+  }
+  let semChar: string = "A",
+    year: number = 1,
+    sem: number = 1;
+  //if table is true then insertion is performed into paidSupply else printSupply
+  let tableName: string = isPaidTable ? "paidSupply" : "printSupply";
+  for (const semSubCodes of list) {
+    for (const subCode of semSubCodes) {
+      try {
+        let result: any = await dbQuery(
+          `select distinct studentInfo.subName from studentInfo where studentInfo.subCode="${subCode}"`
+        );
+        if (result.length > 0) {
+          let subName = result[0]["subName"];
+          await dbQuery(`insert ignore into ${tableName}(rollNo, subCode, subName,acYear, sem, regDate,user,grandTotal) VALUES
+                    ("${rollNo}" ,"${subCode}","${subName}", ${year} ,${sem} ,"${dayjs().format("DD MMM, YY")}","${username}",${grandTotal} )`);
         }
-        semChar = String.fromCharCode(semChar.charCodeAt(0) + 1);
-        sem = sem == 1 ? 2 : 1;
-        year = sem & 1 ? ++year : year;
-     
+      } catch (err) {
+        logger.log("error", err);
+        throw responses.ErrorWhileDBRequest;
+      }
     }
+    semChar = String.fromCharCode(semChar.charCodeAt(0) + 1);
+    sem = sem == 1 ? 2 : 1;
+    year = sem & 1 ? ++year : year;
+  }
 }
-
 
 //For Inserting values into printSupply
 export async function printSupple(req: Request, res: Response) {
@@ -122,4 +136,46 @@ export async function paidSupple(req: Request, res: Response) {
     logger.log("error", err);
     return res.json(responses.ErrorWhileDBRequest);
   }
+}
+
+export async function deleteFromSupple(req: Request, res: Response) {
+  const year = parseInt(req.query.acYear as string);
+  const sem = parseInt(req.query.sem as string);
+  try {
+    if (year === 0 && sem === 0) {
+      await dbQuery("TRUNCATE paidSupply");
+      res.send({ deleted: true });
+      return;
+    }
+    let paidSuppleDelete = "DELETE FROM paidSupply where ";
+    if (year !== 0) {
+        paidSuppleDelete += `acYear = ${year}`;
+    }
+    if (sem !== 0) {
+      if (year !== 0)   paidSuppleDelete += " and ";
+        paidSuppleDelete += `sem = ${sem}`;
+    }
+    if (year === 0 && sem === 0) {
+      await dbQuery("TRUNCATE printSupply");
+      res.send({ deleted: true });
+      return;
+    }
+    let printSuppleDelete = "DELETE FROM printSupply where ";
+    if (year !== 0) {
+        printSuppleDelete += `acYear = ${year}`;
+    }
+    if (sem !== 0) {
+      if (year !== 0)   printSuppleDelete += " and ";
+        printSuppleDelete += `sem = ${sem}`;
+    }
+    await dbQuery  (printSuppleDelete);
+    await dbQuery  (paidSuppleDelete);
+  } catch (err) {
+    logger.log("error", err);
+    res.status(500).json({
+      error:
+        "Error occurred while processing the request. Check server logs for more information.",
+    });
+  }
+  res.send({ deleted : true });
 }

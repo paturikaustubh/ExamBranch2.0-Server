@@ -3,7 +3,7 @@ import * as logger from "../services/logger";
 import dbQuery from "../services/db";
 import dayjs from "dayjs";
 import { Fines } from "../interfaces/cost";
-import { responses } from "../services/common";
+import { isAnyUndefined, responses } from "../services/common";
 
 //To get costs for required case like  supple only
 export async function getCost(req: Request, res: Response) {
@@ -29,9 +29,9 @@ export async function getCost(req: Request, res: Response) {
         let dates: any = await dbQuery(
           `SELECT no_fine,fine_1Dt,fine_2Dt,fine_3Dt FROM fines WHERE semChar='${semChar}'`
         );
-        let noFine = dayjs(dates[0]["no_fine"], "DD-MMM-YY");
-        let fine1Date = dayjs(dates[0]["fine_1Dt"], "DD-MMM-YY");
-        let fine2Date = dayjs(dates[0]["fine_2Dt"], "DD-MMM-YY");
+        let noFine = dayjs(dates[0]["no_fine"], "DD MMM, YY");
+        let fine1Date = dayjs(dates[0]["fine_1Dt"], "DD MMM, YY");
+        let fine2Date = dayjs(dates[0]["fine_2Dt"], "DD MMM, YY");
         if (currentDate <= noFine) {
           fines[semChar] = 0;
         } else if (currentDate <= fine1Date) {
@@ -63,9 +63,20 @@ export async function getCost(req: Request, res: Response) {
 }
 //to update cost for supple,revaluation and CBT
 export async function updateCost(req: Request, res: Response) {
+  const sbc:number=req.body.sbc;
+  const sac:number=req.body.sac;
+  const sfc:number=req.body.sfc;
+  const rev:number=req.body.rev;
+  const cbc:number=req.body.cbc;
+  const cac:number=req.body.cac;
+  const cfc:number=req.body.cfc;
+  if (isAnyUndefined(sbc,sac,sfc,rev,cbc,cac,cfc)) {
+    res.status(400).json(responses.NotAllParamsGiven);
+    return;
+  }
   try {
-    await dbQuery(`UPDATE costs set sbc=${req.body.sbc} ,sac=${req.body.sac},sfc=${req.body.sfc}
-        ,rev=${req.body.rev},cbc=${req.body.cbc} ,cac=${req.body.cac},cfc=${req.body.cfc} where 1`);
+    await dbQuery(`UPDATE costs set sbc=${sbc} ,sac=${sac},sfc=${sfc}
+        ,rev=${rev},cbc=${cbc} ,cac=${cac},cfc=${cfc} where 1`);
   } catch (err) {
     logger.log("error", err);
     res.status(500).json(responses.ErrorWhileDBRequest);
@@ -75,9 +86,21 @@ export async function updateCost(req: Request, res: Response) {
 }
 //To update fines for supple
 export async function updateFine(req: Request, res: Response) {
+    const semChar:string =req.body.semChar
+    const fine1:number =req.body.fine1
+    const fine2:number =req.body.fine2
+    const fine3:number =req.body.fine3
+    const fine1date:string =req.body.fine1date
+    const fine2date:string=req.body.fine2date
+    const fine3date:string=req.body.fine3date
+    const nofinedate:string=req.body.nofinedate
+    if (isAnyUndefined(semChar,fine1,fine2,fine3,fine1date,fine2date,fine3date,nofinedate)) {
+      res.status(400).json(responses.NotAllParamsGiven);
+      return;
+    }
     try{
-        await dbQuery(`REPLACE INTO fines VALUES ('${req.body.semChar}',${req.body.fine1},${req.body.fine2},${req.body.fine3}
-        ,'${req.body.fine1date}','${req.body.fine2date}' ,'${req.body.fine3date}','${req.body.nofinedate}')`)
+        await dbQuery(`REPLACE INTO fines VALUES ('${semChar}',${fine1},${fine2},${fine3}
+        ,'${fine1date}','${fine2date}' ,'${fine3date}','${nofinedate}')`)
     }
     catch(err){
         logger.log("error",err)

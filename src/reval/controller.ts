@@ -80,7 +80,7 @@ async function revalProcess(req: Request, isPaidTable: boolean) {
   if (isAnyUndefined(rollNo, username, ...details)) {
     throw responses.NotAllParamsGiven;
   }
-  const date = dayjs().format("DD-MMM-YY");
+  const date = dayjs().format("DD MMM, YY");
   for (const subjects of details) {
     for (let i = 0; i < subjects.subCodes.length; i++) {
       try {

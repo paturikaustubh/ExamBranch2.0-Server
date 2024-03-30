@@ -78,7 +78,7 @@ async function processCBT(req: Request, res: Response, tableName: string) {
         await dbQuery(
           `INSERT IGNORE INTO ${tableName}(rollNo, subCode, acYear, sem, subName, regDate, branch, user) values ("${rollNo}","${subCode}","${acYear}","${sem}","${
             subNames[index]
-          }", "${dayjs().format("DD-MMM-YY")}","${branch}", "${username}")`
+          }", "${dayjs().format("DD MMM, YY")}","${branch}", "${username}")`
         );
       })
     );
