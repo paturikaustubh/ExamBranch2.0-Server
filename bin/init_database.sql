@@ -1,7 +1,7 @@
 CREATE DATABASE practice;
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
 FLUSH PRIVILEGES;
-USE test;
+USE practice;
 
 
 CREATE TABLE studentInfo (
@@ -141,6 +141,20 @@ CREATE TABLE users (
     password VARCHAR(255)
 );
 
-INSERT INTO users VALUES ("admin", "AD", "6d6587811555580ab1b4f4c440dd612f");
+INSERT INTO users VALUES ("admin", "Admin", "6d6587811555580ab1b4f4c440dd612f");
 
--- INSERT INTO costs VALUES (900, 200, 1800, 1000, 200, 100, 500, 200, 300, 400, "12/12/2022", "12/12/2022", "12/12/2022", "12/12/2022");
+
+
+INSERT INTO costs VALUES (900, 200, 1800, 1000, 200, 100, 500);
+INSERT IGNORE INTO fines VALUES 
+("A",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
+("B",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
+("C",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
+("D",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
+("E",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
+("F",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
+("G",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
+("H",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24");
+
+
+

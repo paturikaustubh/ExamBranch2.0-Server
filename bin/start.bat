@@ -19,8 +19,17 @@ if not exist "%ENV_PATH%" (
 rem creating required dir
 call %~dp0make-dirs.bat
 
+echo Trying to create database...
 rem create database and tables
-rem TODO: make-database.bat
+call make-db.bat
+
+if %errorlevel% neq 0 (
+    echo Could not create database
+    exit /b 1
+) else (
+    echo Database created successfully
+)
+
 
 type %~dp0server-ready.txt
 
