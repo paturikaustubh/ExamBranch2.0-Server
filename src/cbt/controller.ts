@@ -89,7 +89,6 @@ async function processCBT(req: Request, res: Response, tableName: string) {
         await dbQuery(
           `INSERT IGNORE INTO ${tableName}(rollNo, subCode, acYear, sem, subName, regDate, branch, user, grandTotal) values ("${rollNo}","${subCode}","${acYear}","${sem}","${
             subNames[index]
-          
           }", "${dayjs().format(
             "DD MMM, YY"
           )}","${branch}", "${username}", ${grandTotal})`
@@ -162,18 +161,28 @@ export async function deleteFromCBT(req: Request, res: Response) {
 export async function distBranchs(req: Request, res: Response) {
   const branch: string[] = [];
   const sem: string[] = [];
-  const regYear: string[] = [];
+  const acYear: string[] = [];
   try {
-    let result: any = await dbQuery(
-      `SELECT DISTINCT branch, sem, regYear FROM cbtsubjects`
+    let branchResult: any = await dbQuery(
+      `SELECT DISTINCT branch FROM cbtsubjects`
     );
+    let yearResult: any = await dbQuery(
+      `SELECT DISTINCT acYear FROM cbtsubjects`
+    );
+    let semResult: any = await dbQuery(`SELECT DISTINCT sem FROM cbtsubjects`);
+    console.log(branchResult, yearResult, semResult);
 
-    result.forEach((e: any) => {
+    branchResult.forEach((e: any) => {
       branch.push(e.branch);
-      sem.push(e.sem);
-      regYear.push(e.regYear);
     });
-    res.send({ branch, sem, regYear });
+    yearResult.forEach((e: any) => {
+      acYear.push(e.acYear);
+    });
+    semResult.forEach((e: any) => {
+      sem.push(e.sem);
+    });
+    console.log(acYear);
+    res.send({ branch, sem, acYear });
   } catch (err) {
     logger.log("error", err);
     res.status(500).json(responses.ErrorWhileDBRequest);
