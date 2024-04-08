@@ -34,9 +34,11 @@ export async function getCost(req: Request, res: Response) {
         let noFine = dayjs(dates[0]["no_fine"], "DD MMM, YY");
         let fine1Date = dayjs(dates[0]["fine_1Dt"], "DD MMM, YY");
         let fine2Date = dayjs(dates[0]["fine_2Dt"], "DD MMM, YY");
+        let fine3Date = dayjs(dates[0]["fine_3Dt"], "DD MMM, YY");
         noFine = noFine.add(1, 'day');
         fine1Date = fine1Date.add(1, 'day');
         fine2Date = fine2Date.add(1, 'day');
+        fine3Date = fine3Date.add(1, 'day');
         if (currentDate <= noFine) {
           fines[semChar] = 0;
         } else if (currentDate <= fine1Date) {
@@ -49,11 +51,16 @@ export async function getCost(req: Request, res: Response) {
             `SELECT fine_2 FROM fines WHERE semChar='${semChar}'`
           );
           fines[semChar] = result[0]["fine_2"];
-        } else {
+        } else if(currentDate <= fine3Date){
           let result: any = await dbQuery(
             `SELECT fine_3 FROM fines WHERE semChar='${semChar}'`
           );
           fines[semChar] = result[0]["fine_3"];
+        }else{
+          let result: any = await dbQuery(
+            `SELECT fine_4 FROM fines WHERE semChar='${semChar}'`
+          );
+          fines[semChar] = result[0]["fine_4"];
         }
         semChar = String.fromCharCode(semChar.charCodeAt(0) + 1);
       }
@@ -95,17 +102,19 @@ export async function updateFine(req: Request, res: Response) {
     const fine1:number =req.body.fine1
     const fine2:number =req.body.fine2
     const fine3:number =req.body.fine3
+    const fine4:number =req.body.fine4
     const fine1date:string =req.body.fine1date
     const fine2date:string=req.body.fine2date
     const fine3date:string=req.body.fine3date
+    const fine4date:string=req.body.fine4date
     const nofinedate:string=req.body.nofinedate
     if (isAnyUndefined(semChar,fine1,fine2,fine3,fine1date,fine2date,fine3date,nofinedate)) {
       res.status(400).json(responses.NotAllParamsGiven);
       return;
     }
     try{
-        await dbQuery(`REPLACE INTO fines VALUES ('${semChar}',${fine1},${fine2},${fine3}
-        ,'${fine1date}','${fine2date}' ,'${fine3date}','${nofinedate}')`)
+        await dbQuery(`REPLACE INTO fines VALUES ('${semChar}',${fine1},${fine2},${fine3},${fine4}
+        ,'${fine1date}','${fine2date}' ,'${fine3date}','${fine4date}','${nofinedate}')`)
     }
     catch(err){
         logger.log("error",err)
