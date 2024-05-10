@@ -100,7 +100,7 @@ async function insert(req: Request, isPaidTable: boolean) {
           let subName = result[0]["subName"];
           await dbQuery(`insert ignore into ${tableName}(rollNo, subCode, subName,acYear, sem, regDate,user,grandTotal) VALUES
                     ("${rollNo}" ,"${subCode}","${subName}", ${year} ,${sem} ,"${dayjs().format(
-            "DD MMM, YY"
+            "DD MMM YY"
           )}","${username}",${grandTotal} )`);
         }
       } catch (err) {

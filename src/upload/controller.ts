@@ -8,14 +8,15 @@ import * as logger from "../services/logger";
 import { isAnyUndefined, responses } from "../services/common";
 
 const supportedExtensions = [".xlsx", ".csv"];
-const tables = [
-  "paidsupple",
-  "printsupple",
-  "paidreval",
-  "printreval",
-  "paidcbt",
-  "printcbt",
-];
+const tables = {
+  paidsupple: "paidsupply",
+  printsupple: "printsupply",
+  paidreval: "paidreevaluation",
+  printreval: "printreval",
+  paidcbt: "paidcbt",
+  printcbt: "printcbt",
+  codenames: "codenames",
+} as any;
 
 function findKey(object: any, key: string) {
   for (const k of Object.keys(object))
@@ -118,30 +119,32 @@ async function uploadAllFilesInDir(
   }
 }
 
-export async function restoreStudentInfo({ body:{usernameInToken, loc}, ip }: Request, res: Response) {
+export async function restoreStudentInfo(
+  { body: { usernameInToken, loc }, ip }: Request,
+  res: Response
+) {
   loc = path.join(loc.trim());
 
   if (isAnyUndefined(loc))
     return res.status(400).json(responses.NotAllParamsGiven);
 
-    
-    for(const ext of supportedExtensions){
-        let r = await uploadFromLoc(path.join(loc, `backup${ext}`), "studentinfo")
-        if(!('error' in r)) {
-            logger.log("info", "Restoring studentinfo Done");
-            logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has restored studentinfo`);
-            return res.json(responses.DoneMSG)
-        }
+  for (const ext of supportedExtensions) {
+    let r = await uploadFromLoc(path.join(loc, `backup${ext}`), "studentinfo");
+    if (!("error" in r)) {
+      logger.log("info", "Restoring studentinfo Done");
+      logger.log(
+        "info",
+        `${usernameInToken} from ip ${ip?.slice(7)} has restored studentinfo`
+      );
+      return res.json(responses.DoneMSG);
     }
-  
-    res.json(
-        responses.ErrorWhileReadingOrProcessing
-    );
-  
+  }
+
+  res.json(responses.ErrorWhileReadingOrProcessing);
 }
 
 export async function uploadHandler(
-  { body:{ ext, loc, usernameInToken }, ip, params: { tableName } }: Request,
+  { body: { ext, loc, usernameInToken }, ip, params: { tableName } }: Request,
   res: Response
 ) {
   ext = ext || ".xlsx";
@@ -149,27 +152,35 @@ export async function uploadHandler(
   if (isAnyUndefined(loc, ext))
     return res.status(400).json(responses.NotAllParamsGiven);
 
-  if (!tables.includes(tableName))
+  if (!(tableName in tables))
     return res.status(404).json(responses.PageNotFound);
-
   if (!supportedExtensions.includes(ext))
     return res.status(400).json(responses.UnsupportedFileExt);
 
-  const stat = await uploadAllFilesInDir(loc, ext, tableName);
+  const stat = await uploadAllFilesInDir(loc, ext, tables[tableName]);
   if ("error" in stat) {
     res.status(500);
   } else {
-    logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has uploded into ${tableName} table`);
+    logger.log(
+      "info",
+      `${usernameInToken} from ip ${ip?.slice(
+        7
+      )} has uploded into ${tableName} table`
+    );
   }
   res.json(stat);
 }
 
 export async function uploadStudentInfo(
-  { body:{acYear, sem, exYear, exMonth, ext, loc, usernameInToken}, params: { tableName }, ip }: Request,
+  {
+    body: { acYear, sem, exYear, exMonth, ext, loc, usernameInToken },
+    params: { tableName },
+    ip,
+  }: Request,
   res: Response
 ) {
-  ext= ext || ".xlsx";
-  
+  ext = ext || ".xlsx";
+
   if (isAnyUndefined(loc, ext, acYear, sem, exYear, exMonth)) {
     return res.status(400).json(responses.NotAllParamsGiven);
   }
@@ -194,7 +205,7 @@ export async function uploadStudentInfo(
   }
 
   try {
-    const insertQuery = `replace into studentinfo (select ?, ?, subName, ?,${acYear},${sem},${exYear},${exMonth},NULL,NULL,NULL,NULL from codeNames where subCode=? limit 1)`;
+    const insertQuery = `replace into studentinfo (select ?, ?, subName, ?,${acYear},${sem},${exYear},${exMonth} from codeNames where subCode=? limit 1)`;
 
     await Promise.all(
       data.map(async (student) => {
@@ -216,7 +227,12 @@ export async function uploadStudentInfo(
       })
     );
     logger.log("info", "Results uploded into studentinfo successfully");
-    logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has uploded into studentinfo table`);
+    logger.log(
+      "info",
+      `${usernameInToken} from ip ${ip?.slice(
+        7
+      )} has uploded into studentinfo table`
+    );
     res.json(responses.DoneMSG);
   } catch (err) {
     logger.log(
@@ -274,7 +290,12 @@ export async function uploadCBTSubjects(
       })
     );
     logger.log("info", "Results uploded into cbtsubjects successfully");
-    logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has uploded into cbtsubjects table`);
+    logger.log(
+      "info",
+      `${usernameInToken} from ip ${ip?.slice(
+        7
+      )} has uploded into cbtsubjects table`
+    );
     res.json(responses.DoneMSG);
   } catch (err) {
     logger.log(

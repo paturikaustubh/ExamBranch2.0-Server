@@ -90,7 +90,7 @@ async function processCBT(req: Request, res: Response, tableName: string) {
           `INSERT IGNORE INTO ${tableName}(rollNo, subCode, acYear, sem, subName, regDate, branch, user, grandTotal) values ("${rollNo}","${subCode}","${acYear}","${sem}","${
             subNames[index]
           }", "${dayjs().format(
-            "DD MMM, YY"
+            "DD MMM YY"
           )}","${branch}", "${username}", ${grandTotal})`
         );
       })

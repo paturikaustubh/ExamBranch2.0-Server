@@ -1,4 +1,4 @@
-CREATE DATABASE practice;
+CREATE DATABASE test;
 ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
 FLUSH PRIVILEGES;
 USE practice;
@@ -153,8 +153,8 @@ INSERT IGNORE INTO fines VALUES
 ("D",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
 ("E",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
 ("F",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
-("G",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24"),
-("H",100, 200, 300, "30 Mar, 24", "30 Mar, 24", "30 Mar, 24", "30 Mar, 24");
+("G",200, 1000, 2000, "11 Apr, 24", "18 Apr, 24", "25 Apr, 24", "04 Apr, 24"),
+("H",200, 1000, 2000, "11 Apr, 24", "18 Apr, 24", "25 Apr, 24", "04 Apr, 24")
 
 
 

@@ -86,7 +86,7 @@ async function revalProcess(req: Request, isPaidTable: boolean) {
     throw responses.NotAllParamsGiven;
   }
   let rows = [];
-  const date = dayjs().format("DD MMM, YY");
+  const date = dayjs().format("DD MMM YY");
   for (const subjects of details) {
     for (let i = 0; i < subjects.subCodes.length; i++) {
       const [subCode, subName] = [subjects.subCodes[i], subjects.subNames[i]];

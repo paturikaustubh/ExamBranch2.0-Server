@@ -40,7 +40,8 @@ function convertToXLSX(
     xlsx.utils.book_append_sheet(workbook, worksheet, "Sheet1");
 
     const timestamp = Date.now();
-    const excelFilePath = outFilePath || path.join("tmp", `${tableName}_${timestamp}.xlsx`);
+    const excelFilePath =
+      outFilePath || path.join("tmp", `${tableName}_${timestamp}.xlsx`);
 
     // Write the workbook to a file
     xlsx.writeFile(workbook, excelFilePath);
@@ -51,30 +52,42 @@ function convertToXLSX(
       "Error while creating xlsx file for table " + tableName,
       err
     );
-    logger.log("warn", "This can be due to dir not present in required folder.", "\n Try running bin\\start.bat file");
+    logger.log(
+      "warn",
+      "This can be due to dir not present in required folder.",
+      "\n Try running bin\\start.bat file"
+    );
     return { error: "Error while creating xlsx file" };
   }
 }
 
-export async function backupHandler(
-  req:Request, res: Response
-) {
+export async function backupHandler(req: Request, res: Response) {
   let result, fields: FieldInfo[];
   const usernameInToken = req.body.usernameInToken as string;
   const ip = req.ip as string;
   try {
-    [result, fields] = (await dbQueryWithFields("SELECT * FROM studentinfo")) as [any, FieldInfo[]];
+    [result, fields] = (await dbQueryWithFields(
+      "SELECT * FROM studentinfo"
+    )) as [any, FieldInfo[]];
   } catch (err) {
     return res.status(500).json(responses.ErrorWhileDBRequest);
   }
   if (result.length <= 0) return res.json({ error: "No data found" });
 
-  let out = convertToXLSX(result, fields, "studentinfo", path.join("backup", "backup.xlsx"));
+  let out = convertToXLSX(
+    result,
+    fields,
+    "studentinfo",
+    path.join("backup", "backup.xlsx")
+  );
 
   if ("error" in out) {
     return res.status(500).json(out);
   } else {
-    logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has created a backup`);
+    logger.log(
+      "info",
+      `${usernameInToken} from ip ${ip?.slice(7)} has created a backup`
+    );
     return res.json(responses.DoneMSG);
   }
 }
@@ -122,12 +135,12 @@ const tables: {
   [key in tableNames]: { query: string; ordering: string; fileName: string };
 } = {
   paidsupple: {
-    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt", user AS Registrant from paidsupply `,
+    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt", user AS Registrant, grandTotal as GrandTotal from paidsupply `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
     fileName: "Registred Supple",
   },
   printsupple: {
-    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt", user AS Registrant FROM printsupply `,
+    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt", user AS Registrant, grandTotal as GrandTotal FROM printsupply `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
     fileName: "Unregistered Supple",
   },
@@ -137,12 +150,12 @@ const tables: {
     fileName: "Supple Report",
   },
   paidreval: {
-    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt", stat, user AS Registrant FROM paidreevaluation `,
+    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt", stat, user AS Registrant, grandTotal as GrandTotal FROM paidreevaluation `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
     fileName: "Registred Reval",
   },
   printreval: {
-    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt", stat, user AS Registrant FROM printreval `,
+    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", regDate AS "Registration Dt", stat, user AS Registrant, grandTotal as GrandTotal FROM printreval `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
     fileName: "Unregistered Reval",
   },
@@ -152,7 +165,7 @@ const tables: {
     fileName: "Reval Report",
   },
   paidcbt: {
-    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM paidcbt `,
+    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant, grandTotal as GrandTotal FROM paidcbt `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
     fileName: "Registred CBT",
   },
@@ -162,7 +175,7 @@ const tables: {
     fileName: "CBT Report",
   },
   printcbt: {
-    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant FROM printCBT `,
+    query: `SELECT rollNo AS "Ht Number", subCode AS "Code", subName AS "Subject", acYear AS "Year", sem AS "Semester", branch AS "Branch", regDate AS "Registration Dt", user AS Registrant, grandTotal as GrandTotal FROM printCBT `,
     ordering: " ORDER BY rollNo, acYear, sem, subCode ",
     fileName: "Unregistred CBT",
   },
@@ -176,8 +189,12 @@ export async function downloadHandler(
   {
     query: { sem, acYear, tableName },
     body: { usernameInToken },
-    ip
-  }: { query: { sem: string; acYear: string; tableName: tableNames }, body: { usernameInToken: string}, ip?: string },
+    ip,
+  }: {
+    query: { sem: string; acYear: string; tableName: tableNames };
+    body: { usernameInToken: string };
+    ip?: string;
+  },
   res: Response
 ) {
   if (isAnyUndefined(tableName, sem, acYear)) {
@@ -193,13 +210,19 @@ export async function downloadHandler(
     await downloadTable(
       tableName,
       res,
-      `${fileName}_${parseInt(acYear) !== 0 && parseInt(sem) !== 0
-        ? "Complete"
-        : `${acYear}-${sem}`
+      `${fileName}_${
+        parseInt(acYear) !== 0 && parseInt(sem) !== 0
+          ? "Complete"
+          : `${acYear}-${sem}`
       }_${dayjs().format("DD-MMM-YY_hh-mm_A")}`,
       query + condition + ordering
     );
-    logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has downloaded ${tableName} table`);
+    logger.log(
+      "info",
+      `${usernameInToken} from ip ${ip?.slice(
+        7
+      )} has downloaded ${tableName} table`
+    );
   } else {
     // TODO: better msg
     res.status(400).json(responses.BadRequest);
@@ -207,7 +230,7 @@ export async function downloadHandler(
 }
 
 export async function manageDBdownloadHandler(
-  { params, query, body:{usernameInToken}, ip }: Request,
+  { params, query, body: { usernameInToken }, ip }: Request,
   res: Response
 ) {
   const rollNo = params.rollNo as string;
@@ -235,7 +258,10 @@ export async function manageDBdownloadHandler(
       `${rollNo}_${fileName}_${dayjs().format("DD-MMM-YY_hh-mm_A")}`,
       query + condition + ordering
     );
-    logger.log('info', `${usernameInToken} from ip ${ip?.slice(7)} has downloaded ${rollNo} info`);
+    logger.log(
+      "info",
+      `${usernameInToken} from ip ${ip?.slice(7)} has downloaded ${rollNo} info`
+    );
   } else {
     res.status(400).json(responses.BadRequest);
   }
